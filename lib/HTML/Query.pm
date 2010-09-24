@@ -1,6 +1,5 @@
 package HTML::Query;
 
-use Scalar::Util qw(refaddr);
 use List::MoreUtils qw(uniq);
 use Badger::Class
     version   => 0.02,
@@ -13,7 +12,6 @@ use Badger::Class
     constant  => {
         ELEMENT => 'HTML::Element',
         BUILDER => 'HTML::TreeBuilder',
-        DEBUG => 1
     },
     exports   => {
         any   => 'Query',
@@ -236,7 +234,7 @@ sub query {
                     foreach my $sibling (reverse @prev_sibling) {
                       next unless ref $sibling;
 
-                      return refaddr($sibling) == refaddr($root);
+                      return $sibling == $root;
                     }
                   }
                 )
@@ -259,6 +257,17 @@ sub query {
             
             # so we can check we've done something
             $comops++;
+
+            $self->debug(
+                'Element list ', join(', ',@elements)
+            ) if DEBUG;
+
+            @elements = uniq @elements;
+
+            $self->debug(
+                'Unique Element list ', join(', ',@elements)
+            ) if DEBUG;
+
         }
 
         if ($comops) {
