@@ -1,6 +1,5 @@
 package HTML::Query;
 
-use List::MoreUtils qw(uniq);
 use Badger::Class
     version   => 0.02,
     debug     => 0,
@@ -204,8 +203,16 @@ sub query {
             ) if DEBUG;
 
             # we're just looking for any descendent
-            if(!$relationship ) {
-              @elements = map { $_->look_down(@args) } @elements;
+            if( !$relationship ) {
+              # look_down() will match self in addition to descendents,
+              # so we explicitly disallow matches on self as we iterate
+              # thru the list.  The other cases below already exclude self.
+              # https://rt.cpan.org/Public/Bug/Display.html?id=58918
+              my @accumulator;
+              foreach my $e (@elements) {
+                push(@accumulator, grep { $_ != $e } $e->look_down(@args));
+              }
+              @elements = @accumulator;
             }
             # immediate child selector
             elsif( $relationship eq '>' ) {
@@ -257,17 +264,6 @@ sub query {
 
             # so we can check we've done something
             $comops++;
-
-            $self->debug(
-                'Element list ', join(', ',@elements)
-            ) if DEBUG;
-
-            @elements = uniq @elements;
-
-            $self->debug(
-                'Unique Element list ', join(', ',@elements)
-            ) if DEBUG;
-
         }
 
         if ($comops) {
