@@ -1,5 +1,7 @@
 package HTML::Query;
 
+use Scalar::Util qw(refaddr);
+use List::MoreUtils qw(uniq);
 use Badger::Class
     version   => 0.02,
     debug     => 0,
@@ -11,6 +13,7 @@ use Badger::Class
     constant  => {
         ELEMENT => 'HTML::Element',
         BUILDER => 'HTML::TreeBuilder',
+        DEBUG => 1
     },
     exports   => {
         any   => 'Query',
@@ -149,9 +152,18 @@ sub query {
         SEQUENCE: while (1) {
             my @args;
             $pos = pos($query) || 0;
+            my $relationship = '';
         
             # ignore any leading whitespace
             $query =~ / \G \s+ /cgsx;
+
+            # get any relationship modifiers
+            if( $query =~ / \G (>|\*|\+)\s*/cgx ) {
+              # can't have a relationship modifier as the first part of the query
+              $relationship = $1;
+
+              return $self->error_msg( bad_spec => $relationship, $query ) if !$comops;
+            }
 
             # optional leading word is a tag name
             if ($query =~ / \G (\w+) /cgx) {
@@ -193,8 +205,57 @@ sub query {
                 ' into args [', join(', ', @args), ']'
             ) if DEBUG;
 
-            # call look_down() against each element to get the new elements
-            @elements = map { $_->look_down(@args) } @elements;
+            # we're just looking for any descendent
+            if(!$relationship ) {
+              @elements = map { $_->look_down(@args) } @elements;
+            }
+            # immediate child selector
+            elsif( $relationship eq '>' ) {
+              @elements = map {
+                $_->look_down(
+                  @args,
+                  sub {
+                    my $tag = shift;
+                    my $root = $_;
+
+                    return $tag->depth == $root->depth + 1;
+                  }
+                )
+              } @elements;
+            }
+            # immediate sibling selector
+            elsif( $relationship eq '+' ) {
+              @elements = map {
+                $_->parent->look_down(
+                  @args,
+                  sub {
+                    my $tag = shift;
+                    my $root = $_;
+                    my @prev_sibling = $tag->left;
+                    # get prev next non-text sibling
+                    foreach my $sibling (reverse @prev_sibling) {
+                      next unless ref $sibling;
+
+                      return refaddr($sibling) == refaddr($root);
+                    }
+                  }
+                )
+              } @elements;
+            }
+            # grandchild selector
+            elsif( $relationship eq '*' ) {
+              @elements = map {
+                $_->look_down(
+                  @args,
+                  sub {
+                    my $tag = shift;
+                    my $root = $_;
+
+                    return $tag->depth > $root->depth + 1;
+                  }
+                )
+              } @elements;
+            }
             
             # so we can check we've done something
             $comops++;
@@ -681,6 +742,33 @@ Each element specification can be arbitrarily complex.
          tr.result[valign=top]
          td.value'
     );
+
+=head3 Immediate Descendents (children)
+
+When you combine selectors with whitespace elements are selected if
+they are descended from the parent in some way. But if you just want
+to select the children (and not the grandchildren, great-grandchildren,
+etc) then you can combine the selectors with the C<< > >> character.
+
+ @elems = $query->query('a > img');
+
+=head3 Non-Immediate Descendents
+
+If you just want any descendents that aren't children then you can combine
+selectors with the C<*> character.
+
+ @elems = $query->query('div * a');
+
+=head3 Immediate Siblings
+
+If you want to use a sibling relationship then you can can join selectors
+with the C<+> character.
+
+ @elems = $query->query('img + span');
+
+=head2 Combining Selectors
+
+You can combine basic and hierarchical selectors into a single query
 
 =head2 Combining Selectors
 
