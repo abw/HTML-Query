@@ -4,6 +4,7 @@ MANIFEST			This list of files
 README
 t/construct.t
 t/element.t
-t/html/test1.html
+t/duplicate.t
 t/query.t
-META.yml                                 Module meta-data (added by MakeMaker)
+t/html/test1.html
+t/html/test2.html
