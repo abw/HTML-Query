@@ -92,6 +92,9 @@ div.class-three + div.class-four {
 margin-left:200px;
 }
 
+div#id-one * span + span.sub-class2 > strong {
+color:#30ff00;	
+}
 
 -->
 </style></head>
@@ -120,55 +123,55 @@ margin-left:200px;
    </p>
    (/div)
   </div>
-  (/div)
- </div>
 
- <div class="class-three">
-  (div class="class-three")
-  <p>
-   (p)
-   <em>
-    (em)
-    <span class="sub-class">(span class="sub-class")(/span)</span>
-    <span class="sub-class2">(span class="sub-class2")(/span)</span>
-    <span class="under_class2">(span class="under_class2")(/span)</span>
+  <div class="class-three">
+   (div class="class-three")
+   <p>
+    (p)
+    <em>
+     (em)
+     <span class="sub-class">(span class="sub-class")(/span)</span>
+     <span class="sub-class2">(span class="sub-class2")<strong>(strong)(/strong)</strong><strong class="class-four">(strong class="class-four")(/strong)</strong>(/span)</span>
+     <span class="under_class2">(span class="under_class2")(/span)</span>
     (/em)
-   </em>
+    </em>
+    (/p)
+   </p>
+   (/div)
+  </div>
+
+  <div class="class-four">
+   (div class="class-four")
+   <p>(p)(/p)</p>
+   <em>(em)(/em)</em>
+   (/div)
+  </div>
+
+  <p class="class-two">
+   (p class="class-two")(/p)
+  </p>
+
+  <p class="class-one">
+   (p class="class-one")
+   <span>(span)(/span)</span> text <span>(span)(/span)</span>
    (/p)
+  </p>
+
+  <div class="class-four">
+   (div class="class-four")
+   <p>(p)(/p)</p>
+   <em>(em)(/em)</em>
+   (/div)
+  </div>
+
+  <p class="class-two">
+   (p class="class-two")(/p)
   </p>
   (/div)
  </div>
 
- <div class="class-four">
-  (div class="class-four")
-  <p>(p)(/p)</p>
-  <em>(em)(/em)</em>
-  (/div)
- </div>
-
- <p class="class-two">
-  (p class="class-two")(/p)
- </p>
-
  <p class="class-one">
-  (p class="class-one")
-  <span>(span)</span> text <span>(span)(/span)</span>
-  (/p)
- </p>
-
- <div class="class-four">
-  (div class="class-four")
-  <p>(p)(/p)</p>
-  <em>(em)(/em)</em>
-  (/div)
- </div>
-
- <p class="class-two">
-  (p class="class-two")(/p)
- </p>
-
- <p class="class-one">
-  (p class="class-one")<span>(span)(/span)</span> text <span>(span)(/span)</span>
+  (p class="class-one")<span>(span)(/span)</span> text <span>(span)(/span)</span>(/p)
  </p>
 
  <p class="class-two">
