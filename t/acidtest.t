@@ -121,9 +121,9 @@ ok( $test16, 'div#id-one div p>em span[class=sub-class2] + span[class=under_clas
 is( $test16->size, 2, 'div#id-one div p>em span[class=sub-class2] + span[class=under_class2]' );
 is( join(', ', $test16->as_trimmed_text), '(span class="under_class2")(/span), (span class="under_class2")(/span)','got var' );
 
-my $test17 = $query->query('div#id-one div.class-three p>em span[class|=sub-class2] + span[class=under_class2]');
-ok( $test17, 'div#id-one div.class-three p>em span[class|=sub-class2] + span[class=under_class2]' );
-is( $test17->size, 1, 'div#id-one div.class-three p>em span[class|=sub-class2] + span[class=under_class2]' );
+my $test17 = $query->query('div#id-one div.class-three p>em span[class|=sub] + span[class=under_class2]');
+ok( $test17, 'div#id-one div.class-three p>em span[class|=sub] + span[class=under_class2]' );
+is( $test17->size, 1, 'div#id-one div.class-three p>em span[class|=sub] + span[class=under_class2]' );
 is( join(', ', $test17->as_trimmed_text), 'some span deep in some divs','got var' );
 
 my $test18 = $query->query('div.class-three + div.class-four');
