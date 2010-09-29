@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 67,
+    tests => 73,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -150,3 +150,14 @@ my $test22 = $query->query('div#id-one p>em span[class=under_class2] + span[clas
 ok( $test22, 'div#id-one p>em span[class=under_class2] + span[class~=under_class3]' );
 is( $test22->size, 1, 'div#id-one p>em span[class=under_class2] + span[class~=under_class3]' );
 is( join(', ', $test22->as_trimmed_text), '(span class="sub-class2 under_class3")(/span)','got var' );
+
+my $test23 = $query->query('div#id-one div[class=class-three] span[class=sub-class2] strong[class=class-four]');
+ok( $test23, 'div#id-one div[class=class-three] span[class=sub-class2] strong[class=class-four]' );
+is( $test23->size, 1, 'div#id-one div[class=class-three] span[class=sub-class2] strong[class=class-four]' );
+is( join(', ', $test23->as_trimmed_text), '(strong class="class-four")(/strong)','got var' );
+
+my $test24 = $query->query('h1[title][class=last-one][rel=last]');
+ok( $test24, 'h1[title][class=last-one][rel=last]' );
+is( $test24->size, 1, 'h1[title][class=last-one][rel=last]' );
+is( join(', ', $test24->as_trimmed_text), '(h1 title="myheading" class="last-one" rel="last")(/h1)','got var' );
+
