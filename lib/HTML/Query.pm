@@ -4,7 +4,7 @@ our $VERSION = '0.03';
 
 use Badger::Class
     version   => 0.02,
-    debug     => 1,
+    debug     => 0,
     base      => 'Badger::Base',
     utils     => 'blessed',
     import    => 'class CLASS',
@@ -152,7 +152,6 @@ sub query {
             my @args;
             $pos = pos($query) || 0;
             my $relationship = '';
-            my $attribute_op = '';
 
             # ignore any leading whitespace
             $query =~ / \G \s+ /cgsx;
@@ -161,6 +160,7 @@ sub query {
             if( $query =~ / \G (>|\*|\+)\s*/cgx ) {
               # can't have a relationship modifier as the first part of the query
               $relationship = $1;
+              warn "relationship = $relationship\n" if DEBUG;
 
               return $self->error_msg( bad_spec => $relationship, $query ) if !$comops;
             }
@@ -185,18 +185,25 @@ sub query {
                 my $attribute = $1;
 
                 #if we have an operator
-                if ($attribute =~ m/\s*([\|\~]?=)\s*/) {
-                  $attribute_op = $1; #copy the captured operator
+                if ($attribute =~ m/(.*?)\s*([\|\~]?=)\s*(.*)/) {
+                  my ($name,$attribute_op,$value) = ($1,$2,$3);
+                  warn "operator $attribute_op" if DEBUG;
 
-                  my ($name, $value) = split(/\s*[\|\~]?=\s*/, $attribute, 2);
                   if (defined $value) {
                     for ($value) {
                         s/^['"]//;
                         s/['"]$//;
                     }
-                    push( @args, $name => $value);
+                    if ($attribute_op eq '=') {
+                      push( @args, $name => $value);
+                    }
+                    elsif ($attribute_op eq '|=') {
+                      push(@args, $name => qr/\b${value}-?/)
+                    }
+                    elsif ($attribute_op eq '~=') {
+                      push(@args, $name => qr/\b${value}\b/)
+                    }
                   }
-                  warn "we are an attribute selector!";
                 }
                 else {
                   # add a regex to match anything (or nothing)
@@ -213,38 +220,17 @@ sub query {
                 ' into args [', join(', ', @args), ']'
             ) if DEBUG;
 
-            warn $attribute_op;
-
-            # we're just looking for any descendents
-            if( !$relationship) {
-              @elements = map {
-                  $_->look_down(
-                    @args,
-                    sub {
-                      warn "HI";
-                      my $tag = shift;     
-                      my $root = $_;
-
-                      if (defined($attribute_op) && $attribute_op eq '|=') {
-                        my $value = pop(@args);
-                        my $name = pop(@args);
-
-                        warn (($tag->attr($name) =~ m/$value/) || ($tag->attr($name) =~ m/$value-/));
-
-                        return (($tag->attr($name) =~ m/$value/) || ($tag->attr($name) =~ m/$value-/));
-                      }
-                      elsif (defined($attribute_op) && $attribute_op eq '~=') {
-                        my $value = pop(@args);
-                        my $name = pop(@args);
-
-                        return ($tag->attr($name) =~ m/$value/);
-                      }
-                      else {
-                        return ($tag != $root);
-                      }
-                    }
-                  )
-              } @elements;
+            # we're just looking for any descendent
+            if( !$relationship ) {
+              # look_down() will match self in addition to descendents,
+              # so we explicitly disallow matches on self as we iterate
+              # thru the list.  The other cases below already exclude self.
+              # https://rt.cpan.org/Public/Bug/Display.html?id=58918
+              my @accumulator;
+              foreach my $e (@elements) {
+                push(@accumulator, grep { $_ != $e } $e->look_down(@args));
+              }
+              @elements = @accumulator;
             }
             # immediate child selector
             elsif( $relationship eq '>' ) {
@@ -255,28 +241,10 @@ sub query {
                     my $tag = shift;
                     my $root = $_;
 
-                    if (defined($attribute_op) && $attribute_op eq '|=') {
-                      my $value = pop(@args);
-                      my $name = pop(@args);
-
-                      return (($tag->attr($name) =~ m/$value/) || ($tag->attr($name) =~ m/$value-/));
-                    }
-                    elsif (defined($attribute_op) && $attribute_op eq '~=') {
-                      my $value = pop(@args);
-                      my $name = pop(@args);
-
-                      return ($tag->attr($name) =~ m/$value/);
-                    }
-                    else {
-                      return $tag->depth == $root->depth + 1;
-                    }
+                    return $tag->depth == $root->depth + 1;
                   }
                 )
               } @elements;
-              warn scalar @elements;
-              warn $elements[0]->as_HTML();
-              warn $elements[1]->as_HTML();
-
             }
             # immediate sibling selector
             elsif( $relationship eq '+' ) {
@@ -285,28 +253,12 @@ sub query {
                   @args,
                   sub {
                     my $tag = shift;
-
                     my $root = $_;
                     my @prev_sibling = $tag->left;
                     # get prev next non-text sibling
                     foreach my $sibling (reverse @prev_sibling) {
                       next unless ref $sibling;
-
-                      if (defined($attribute_op) && $attribute_op eq '|=') {
-                        my $value = pop(@args);
-                        my $name = pop(@args);
-
-                        return ((($tag->attr($name) =~ m/$value/) || ($tag->attr($name) =~ m/$value-/)) && ($sibling == $root));
-                      }
-                      elsif (defined($attribute_op) && $attribute_op eq '~=') {
-                        my $value = pop(@args);
-                        my $name = pop(@args);
-
-                        return (($tag->attr($name) =~ m/$value/) && ($sibling == $root));
-                      }
-                      else {
-                        return $sibling == $root;
-                      }
+                      return $sibling == $root;
                     }
                   }
                 )
@@ -321,21 +273,7 @@ sub query {
                     my $tag = shift;
                     my $root = $_;
 
-                    if (defined($attribute_op) && $attribute_op eq '|=') {
-                      my $value = pop(@args);
-                      my $name = pop(@args);
-
-                      return ((($tag->attr($name) =~ m/$value/) || ($tag->attr($name) =~ m/$value-/)) && ($tag->depth > $root->depth + 1));
-                    }
-                    elsif (defined($attribute_op) && $attribute_op eq '~=') {
-                      my $value = pop(@args);
-                      my $name = pop(@args);
-
-                      return (($tag->attr($name) =~ m/$value/) && ($tag->depth > $root->depth + 1));
-                    }
-                    else {
-                      return $tag->depth > $root->depth + 1;
-                    }
+                    return $tag->depth > $root->depth + 1;
                   }
                 )
               } @elements;
@@ -343,6 +281,9 @@ sub query {
 
             # so we can check we've done something
             $comops++;
+
+            warn "numelts=".scalar(@elements)."\n" if DEBUG;
+            map { warn $_->as_HTML } @elements if DEBUG;
         }
 
         if ($comops) {
