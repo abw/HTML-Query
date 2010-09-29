@@ -706,6 +706,30 @@ This can be combined with an element type and/or element id:
     @elems = $query->query('p#foo.info'); # <p id="foo" class="info">
     @elems = $query->query('#foo.info');  # <ANY id="foo" class="info">
 
+The selectors listed above can be combined in a whitespace delimited
+sequence to select down through a hierarchy of elements.  Consider the
+following table:
+
+    <table class="search">
+      <tr class="result">
+        <td class="value">WE WANT THIS ELEMENT</td>
+      </tr>
+      <tr class="result">
+        <td class="value">AND THIS ONE</td>
+      </tr>
+      ...etc..
+    </table>
+
+To locate the cells that we're interested in, we can write:
+
+    @elems = $query->query('table.search tr.result td.value');
+
+=head2 Attribute Selectors
+
+W3C CSS 2 specification defines new constructs through which to select
+based on specific attributes within elements. See the following link for the spec:
+L<http://www.w3.org/TR/css3-selectors/#attribute-selectors>
+
 =head3 [attr]
 
 Matches elements that have the specified attribute, including any where
@@ -737,36 +761,44 @@ match I<all> of them will be selected.
 
     @elems = $query->query('a[href=index.html][rel=home]');
 
+=head3 [attr|=value]
+
+Matches any element X whose foo attribute has a hyphen-separated list of
+values beginning (from the left) with bar. The value can be quoted in either
+single or double quotes, or left unquoted.
+
+    @elems = $query->query('[lang|=en]');
+    @elems = $query->query('p[class|="example"]');
+    @elems = $query->query("img[alt|='fig']");
+
+You can specify multiple attribute selectors.  Only those elements that
+match I<all> of them will be selected.
+
+    @elems = $query->query('p[class|="external"][lang|="en"]');
+
+=head3 [attr~=value]
+
+Matches any element X whose foo attribute value is a list of space-separated
+values, one of which is exactly equal to bar. The value can be quoted in either
+single or double quotes, or left unquoted.
+
+    @elems = $query->query('[lang~=en]');
+    @elems = $query->query('p[class~="example"]');
+    @elems = $query->query("img[alt~='fig']");
+
+You can specify multiple attribute selectors.  Only those elements that
+match I<all> of them will be selected.
+
+    @elems = $query->query('p[class~="external"][lang~="en"]');
+
 KNOWN BUG: you can't have a C<]> character in the attribute value because
 it confuses the query parser.  Fixing this is TODO.
 
-=head2 Hierarchical Selectors
+=head2 Combinator Selectors
 
-The basic selectors listed above can be combined in a whitespace delimited
-sequence to select down through a hierarchy of elements.  Consider the
-following table:
-
-    <table class="search">
-      <tr class="result">
-        <td class="value">WE WANT THIS ELEMENT</td>
-      </tr>
-      <tr class="result">
-        <td class="value">AND THIS ONE</td>
-      </tr>
-      ...etc..
-    </table>
-
-To locate the cells that we're interested in, we can write:
-
-    @elems = $query->query('table.search tr.result td.value');
-
-Each element specification can be arbitrarily complex.
-
-    @elems = $query->query(
-        'table.search[width=100%][height=100%]
-         tr.result[valign=top]
-         td.value'
-    );
+W3C CSS 2 specification defines new constructs through which to select
+based on heirarchy with the DOM. See the following link for the spec:
+L<http://www.w3.org/TR/css3-selectors/#combinators>
 
 =head3 Immediate Descendents (children)
 
@@ -983,6 +1015,15 @@ limitation in the parser which will be fixed RSN.
 =head1 AUTHOR
 
 Andy Wardley L<http://wardley.org>
+
+=head1 MAINTAINER
+
+Kevin Kamel <kamelkev@mailermailer.com>
+
+=head1 CONTRIBUTORS
+
+Vivek Khera <vivek@khera.org>
+Michael Peters <wonko@cpan.org>
 
 =head1 COPYRIGHT
 
