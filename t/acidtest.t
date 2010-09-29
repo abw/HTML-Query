@@ -48,8 +48,8 @@ is( $test1->size, 1, 'div#id-one' );
 
 my $test2 = $query->query('div#id-one h1[title]');
 ok( $test2, 'div#id-one h1[title]' );
-is( $test2->size, 1, 'div#id-one h1[title]' );
-is( join(', ', $test2->as_trimmed_text), '(h1 title="lorum")(/h1)','got var' );
+is( $test2->size, 2, 'div#id-one h1[title]' );
+is( join(', ', $test2->as_trimmed_text), '(h1 title="lorum")(/h1), (h1 title="myheading" class="last-one" rel="last")(/h1)','got var' );
 
 my $test3 = $query->query('div#id-one h1[class=example]');
 ok( $test3, 'div#id-one h1[class=example]' );
