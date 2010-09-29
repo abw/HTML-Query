@@ -1,6 +1,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
+
+<script type="text/javascript" src="http://www.mailermailer.com/utilities/smush.bin?scripts=swfobject.js,jquery/jquery-1.4.2.min.js,jquery/jquery.fancybox.js,general.js"></script>
+
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Untitled Document</title>
 <style type="text/css">
@@ -96,6 +99,10 @@ div#id-one * span + span.sub-class2 > strong {
 color:#30ff00;	
 }
 
+div#id-one div.class-three p>em span[class=under_class2] + span[class~=under_class3] {
+color:#0088dc;
+}
+
 -->
 </style></head>
 
@@ -117,6 +124,7 @@ color:#30ff00;
      <span class="sub-class">(span class="sub-class")(/span)</span>
      <span class="sub-class2">(span class="sub-class2")(/span)</span>
      <span class="under_class2">(span class="under_class2")(/span)</span>
+     <span class="sub-class2 under_class3">(span class="sub-class2 under_class3")(/span)</span>
      (/em)
     </em>
     (/p)
