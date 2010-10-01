@@ -4,7 +4,7 @@ our $VERSION = '0.03';
 
 use Badger::Class
     version   => $VERSION,
-    debug     => 0,
+    debug     =>  0,
     base      => 'Badger::Base',
     utils     => 'blessed',
     import    => 'class CLASS',
@@ -156,17 +156,21 @@ sub query {
             # ignore any leading whitespace
             $query =~ / \G \s+ /cgsx;
 
-            # get any relationship modifiers
-            if( $query =~ / \G (>|\*|\+)\s*/cgx ) {
+            # get any relationship modifiers, ignore universal queries
+            if ($query =~ / \G (>|\+)\s*| \G (\*)\s+ /cgx) {
               # can't have a relationship modifier as the first part of the query
-              $relationship = $1;
+              $relationship = $1 || $2;
               warn "relationship = $relationship\n" if DEBUG;
-
               return $self->error_msg( bad_spec => $relationship, $query ) if !$comops;
             }
 
+            # universal selector, treat as "all tag"
+            if ($query =~ / \G (\*) /cgx) {
+              push(@args, _tag => qr/\w+/);
+            }
+
             # optional leading word is a tag name
-            if ($query =~ / \G (\w+) /cgx) {
+            if ($query =~ / \G (\w+|\*) /cgx) {
                 push( @args, _tag => $1 );
             }
 
