@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 76,
+    tests => 75,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -44,7 +44,7 @@ ok( $query, 'created query' );
 
 my $test0 = $query->query('*');
 ok( $test0, '*' );
-is( $test0->size, 47, '*' ); #includes javascript and metas
+is( $test0->size, 46, '*' ); #includes javascript and metas
 
 my $test1 = $query->query('div#id-one');
 ok( $test1, 'div#id-one' );
