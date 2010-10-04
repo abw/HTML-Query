@@ -102,8 +102,8 @@ is( join(', ', $test11->as_trimmed_text), '(span)(/span), (span)(/span)','got va
 
 my $test12 = $query->query('div em');
 ok( $test12, 'div em' );
-is( $test12->size, 8, 'div em' );
-is( join(', ', $test12->as_trimmed_text), '(em) (span class="sub-class")(/span) (span class="sub-class2")(/span) (span class="under_class2")(/span) (span class="sub-class2 under_class3")(/span) (/em), (em) (span class="sub-class")(/span) (span class="sub-class2")(strong)(/strong)(strong class="class-four")(/strong)(/span) (span class="under_class2")(/span) (/em), (em)(/em), (em)(/em), (em) (span class="sub-class")(/span) (span class="sub-class2")(/span) (span class="under_class2")(/span) (span class="sub-class2 under_class3")(/span) (/em), (em) (span class="sub-class")(/span) (span class="sub-class2")(strong)(/strong)(strong class="class-four")(/strong)(/span) (span class="under_class2")(/span) (/em), (em)(/em), (em)(/em)','got var' );
+is( $test12->size, 4, 'div em' );
+is( join(', ', $test12->as_trimmed_text), '(em) (span class="sub-class")(/span) (span class="sub-class2")(/span) (span class="under_class2")(/span) (span class="sub-class2 under_class3")(/span) (/em), (em) (span class="sub-class")(/span) (span class="sub-class2")(strong)(/strong)(strong class="class-four")(/strong)(/span) (span class="under_class2")(/span) (/em), (em)(/em), (em)(/em)','got var' );
 
 my $test13 = $query->query('div>em');
 ok( $test13, 'div>em' );
