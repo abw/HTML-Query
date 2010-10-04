@@ -150,6 +150,8 @@ sub query {
         # e.g. "table tr td"
         SEQUENCE: while (1) {
             my @args;
+            my %seen;
+            my @unique;
             $pos = pos($query) || 0;
             my $relationship = '';
 
@@ -285,6 +287,15 @@ sub query {
 
             # so we can check we've done something
             $comops++;
+
+            # we need to remove duplicate elements in the case where elements are nested between multiple matching elements
+            %seen = ();
+            @unique = ();
+            foreach my $item (@elements) {
+              push(@unique, $item) unless $seen{$item}++;
+            }
+
+            @elements = @unique;
 
             warn "numelts=".scalar(@elements)."\n" if DEBUG;
             map { warn $_->as_HTML } @elements if DEBUG;

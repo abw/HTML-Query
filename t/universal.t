@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 20,
+    tests => 23,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -71,4 +71,9 @@ my $test5 = $query->query('div.danger * *[class="green"]');
 ok( $test5, 'div.danger * *[class="green"]' );
 is( $test5->size, 1, 'div.danger * *[class="green"]' );
 is( join(', ', $test5->as_trimmed_text), '(div class="green")(/div)','got var' );
+
+my $test6 = $query->query('div.danger * * *[class="green"]');
+ok( $test6, 'div.danger * * *[class="green"]' );
+is( $test6->size, 1, 'div.danger * * *[class="green"]' );
+is( join(', ', $test6->as_trimmed_text), '(div class="green")(/div)','got var' );
 
