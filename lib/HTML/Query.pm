@@ -155,13 +155,21 @@ sub query {
             $pos = pos($query) || 0;
             my $relationship = '';
 
+            #grandchild selector is whitespace sensitive, requires leading whitespace to work
+            if ($query =~ / \G \s+ (\*) \s+ /cgx) {
+              # can't have a relationship modifier as the first part of the query
+              $relationship = $1;
+              warn "relationship = $relationship\n" if DEBUG;
+              return $self->error_msg( bad_spec => $relationship, $query ) if !$comops;
+            }
+
             # ignore any leading whitespace
             $query =~ / \G \s+ /cgsx;
 
-            # get any relationship modifiers, ignore universal queries
-            if ($query =~ / \G (>|\+)\s*| \G (\*)\s+ /cgx) {
+            # get other relationship modifiers, ignore universal queries
+            if ($query =~ / \G (>|\+) \s* /cgx) {
               # can't have a relationship modifier as the first part of the query
-              $relationship = $1 || $2;
+              $relationship = $1;
               warn "relationship = $relationship\n" if DEBUG;
               return $self->error_msg( bad_spec => $relationship, $query ) if !$comops;
             }

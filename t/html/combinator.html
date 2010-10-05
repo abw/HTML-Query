@@ -9,34 +9,37 @@
 
 div.danger * {
               color: red; 
-             }
+}
 
 div.green {
               color: green; 
-             }
+}
 
 div.yellow {
               color: yellow; 
-             }
+}
 
 div.danger * [class="green"] {
               font-size: 30px;
-            }
+}
 
 div.danger *[class="green"] {
               font-style: italic;
-            }
+}
 
 div.danger * *[class="green"] {
               text-decoration: underline;
-            }
+}
 
+body* div {
+           color: blue;
+} 
 
 -->
 </style>
 </head>
 <body>
-
+ (body)
  <div>
   (div)
   <div>
@@ -64,5 +67,6 @@ div.danger * *[class="green"] {
   </div>
  (/div)
  </div>
+ (/body)
 </body>
 </html>
