@@ -52,6 +52,8 @@ our $SOURCES = {
 };
 
 
+
+
 sub _export_query_to_element {
     class(ELEMENT)->load->method(
         # this Just Works[tm] because first arg is HTML::Element object
@@ -127,6 +129,28 @@ sub new {
         : $self;
 }
 
+sub collect_errors {
+    my ($self, $setting) = @_;
+
+    our $collect;
+
+    if (defined($setting)) {
+      $collect = $setting;
+    }
+
+    return $collect;
+}
+
+sub report_error {
+    my ($self, $message) = @_;
+
+    if (collect_errors()) {
+      return $message;
+    }
+    else {
+      $self->error($message);
+    }
+}
 
 sub query {
     my ($self, $query) = @_;
@@ -167,7 +191,9 @@ sub query {
               # can't have a relationship modifier as the first part of the query
               $relationship = $1;
               warn "relationship = $relationship\n" if DEBUG;
-              return $self->error_msg( bad_spec => $relationship, $query ) if !$comops;
+              if (!$comops) {                
+                return $self->report_error( $self->message( bad_spec => $relationship, $query ) );
+              }
             }
 
             # get other relationship modifiers, ignore universal queries
@@ -175,7 +201,9 @@ sub query {
               # can't have a relationship modifier as the first part of the query
               $relationship = $1;
               warn "relationship = $relationship\n" if DEBUG;
-              return $self->error_msg( bad_spec => $relationship, $query ) if !$comops;
+              if (!$comops) {
+                return $self->report_error( $self->message( bad_spec => $relationship, $query ) );
+              }
             }
 
             # universal selector, requires leading whitespace or to be first operator, treat as "all tag"
@@ -334,12 +362,14 @@ sub query {
     }
 
     # check for any trailing text in the query that we couldn't parse
-    return $self->error_msg( bad_spec => $1, $query )
-        if $query =~ / \G (.+?) \s* $ /cgsx;
+    if ($query =~ / \G (.+?) \s* $ /cgsx) {
+        return $self->report_error( $self->message( bad_spec => $1, $query ) );
+    }
 
     # check that we performed at least one query operation
-    return $self->error_msg( bad_query => $query )
-        unless $ops;
+    unless ($ops) {
+        return $self->report_error( $self->message( bad_query => $query ) );
+    }
 
     return wantarray
         ? @result
