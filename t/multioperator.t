@@ -33,8 +33,8 @@ my ($query, $tree);
 #-----------------------------------------------------------------------
 
 $tree = $Builder->new;
-$tree->parse_file( $multioperator->absolute );
-ok( $tree, 'parsed tree for second test file: ' . $multioperator->name );
+$tree->parse_file( $multi->absolute );
+ok( $tree, 'parsed tree for second test file: ' . $multi->name );
 $query = Query $tree;
 ok( $query, 'created query' );
 
