@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 26,
+    tests => 41,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -37,6 +37,8 @@ $tree->parse_file( $multi->absolute );
 ok( $tree, 'parsed tree for second test file: ' . $multi->name );
 $query = Query $tree;
 ok( $query, 'created query' );
+
+$query->collect_errors(1);
 
 #-----------------------------------------------------------------------
 # look for some basic elements using duplicate tagnames in query
@@ -83,33 +85,26 @@ is( $test9->size, 8, 'body * div' );
 is( join(', ', $test9->as_trimmed_text), '(div) (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div) (div)(/div)(div)(/div) (/div), (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div), (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div), (div)(/div), (div)(/div)','got var' );
 
 my $test10 = $query->query('body* div');
-ok( $test10, 'body* div' );
-is( $test10->size, 0, 'body* div' );
-is( join(', ', $test10->as_trimmed_text), '','got var' );
+isnt( ref $test10, 'HTML::Query', 'No object returned');
+is( $test10, 'Invalid specification "* div" in query: body* div', 'Proper error returned for bad query');
 
 my $test11 = $query->query('body *div');
-ok( $test11, 'body *div' );
-is( $test11->size, 0, 'body *div' );
-is( join(', ', $test11->as_trimmed_text), '','got var' );
+isnt( ref $test11, 'HTML::Query', 'No object returned');
+is( $test11, 'Invalid specification "*div" in query: body *div', 'Proper error returned for bad query');
 
 my $test12 = $query->query('body*');
-ok( $test12, 'body*' );        
-is( $test12->size, 0, 'body*' );        
-is( join(', ', $test12->as_trimmed_text), '','got var' ); 
+isnt( ref $test12, 'HTML::Query', 'No object returned');
+is( $test12, 'Invalid specification "body*" in query: body*', 'Proper error returned for bad query');
 
 my $test13 = $query->query('*div');
-ok( $test13, '*div' );        
-is( $test13->size, 0, '*div' );        
-is( join(', ', $test13->as_trimmed_text), '','got var' ); 
+isnt( ref $test13, 'HTML::Query', 'No object returned');
+is( $test13, 'Invalid specification "*div" in query: *div', 'Proper error returned for bad query');
 
 my $test14 = $query->query('* div');
 ok( $test14, '* div' );
 is( $test14->size, 9, '* div' );
 is( join(', ', $test14->as_trimmed_text), '(div) (div) (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div) (div)(/div)(div)(/div) (/div) (/div), (div) (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div) (div)(/div)(div)(/div) (/div), (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div), (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div), (div)(/div), (div)(/div)','got var' ); 
 
-my $test15;
-eval {
- $test15 = $query->query(' * div');
-};
-#we expect to get an error here
-ok ($@, 'html.query error - Invalid specification "*" in query: " * div"');
+my $test15 = $query->query(' * div');
+
+1;
