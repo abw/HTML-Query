@@ -1,6 +1,6 @@
 #============================================================= -*-perl-*-
 #
-# t/universal.t
+# t/combinator.t
 #
 # Test script for the query() method.
 #
@@ -24,7 +24,7 @@ our $Query    = 'HTML::Query';
 our $Builder  = 'HTML::TreeBuilder';
 our $test_dir = Dir($Bin);
 our $html_dir = $test_dir->dir('html')->must_exist;
-our $universal = $html_dir->file('universal.html')->must_exist;
+our $multi = $html_dir->file('multioperator.html')->must_exist;
 
 my ($query, $tree);
 
@@ -33,8 +33,8 @@ my ($query, $tree);
 #-----------------------------------------------------------------------
 
 $tree = $Builder->new;
-$tree->parse_file( $universal->absolute );
-ok( $tree, 'parsed tree for second test file: ' . $universal->name );
+$tree->parse_file( $multi->absolute );
+ok( $tree, 'parsed tree for second test file: ' . $multi->name );
 $query = Query $tree;
 ok( $query, 'created query' );
 

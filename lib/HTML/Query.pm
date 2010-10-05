@@ -1,6 +1,6 @@
 package HTML::Query;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Badger::Class
     version   => $VERSION,
@@ -154,17 +154,21 @@ sub query {
             my @unique;
             $pos = pos($query) || 0;
             my $relationship = '';
+            my $leading_whitespace;
+            my $universal = '';
 
-            #grandchild selector is whitespace sensitive, requires leading whitespace to work
-            if ($query =~ / \G \s+ (\*) \s+ /cgx) {
+            # ignore any leading whitespace
+            if ($query =~ / \G (\s+) /cgsx) {
+              $leading_whitespace = defined($1) ? 1 : 0;
+            }
+
+            #grandchild selector is whitespace sensitive, requires leading whitespace to work at all
+            if ($leading_whitespace && ($query =~ / \G (\*) \s+ /cgx)) {
               # can't have a relationship modifier as the first part of the query
               $relationship = $1;
               warn "relationship = $relationship\n" if DEBUG;
               return $self->error_msg( bad_spec => $relationship, $query ) if !$comops;
             }
-
-            # ignore any leading whitespace
-            $query =~ / \G \s+ /cgsx;
 
             # get other relationship modifiers, ignore universal queries
             if ($query =~ / \G (>|\+) \s* /cgx) {
@@ -174,13 +178,13 @@ sub query {
               return $self->error_msg( bad_spec => $relationship, $query ) if !$comops;
             }
 
-            # universal selector, treat as "all tag"
-            if ($query =~ / \G (\*) /cgx) {
+            # universal selector, requires leading whitespace or to be first operator, treat as "all tag"
+            if (($leading_whitespace || $comops == 0) && ($query =~ / \G (\*) /cgx)) {
               push(@args, _tag => qr/\w+/);
             }
 
             # optional leading word is a tag name
-            if ($query =~ / \G (\w+|\*) /cgx) {
+            if ($query =~ / \G (\w+) /cgx) {
                 push( @args, _tag => $1 );
             }
 
