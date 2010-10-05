@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 42,
+    tests => 26,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
