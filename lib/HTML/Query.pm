@@ -51,7 +51,7 @@ our $SOURCES = {
     },
 };
 
-
+our $error; # how can we store this in the class itself? this is stupid...
 
 
 sub _export_query_to_element {
@@ -61,6 +61,19 @@ sub _export_query_to_element {
     );
 }
 
+sub _report_error {
+    my ($self, $message) = @_;
+
+    if (suppress_errors()) {
+      if (defined($message)) { 
+        $error = $message;
+      }
+      return undef;
+    }
+    else {
+      $self->error($message);
+    }
+}
 
 sub Query (@) {
     CLASS->new(@_);
@@ -129,27 +142,22 @@ sub new {
         : $self;
 }
 
-sub collect_errors {
+sub suppress_errors {
     my ($self, $setting) = @_;
 
-    our $collect;
+    our $suppress;
 
     if (defined($setting)) {
-      $collect = $setting;
+      $suppress = $setting;
     }
 
-    return $collect;
+    return $suppress;
 }
 
-sub report_error {
-    my ($self, $message) = @_;
+sub get_error {
+    my ($self) = @_;
 
-    if (collect_errors()) {
-      return $message;
-    }
-    else {
-      $self->error($message);
-    }
+    return $error;
 }
 
 sub query {
@@ -186,34 +194,43 @@ sub query {
               $leading_whitespace = defined($1) ? 1 : 0;
             }
 
-            #grandchild selector is whitespace sensitive, requires leading whitespace to work at all
+            #grandchild selector is whitespace sensitive, requires leading whitespace
             if ($leading_whitespace && ($query =~ / \G (\*) \s+ /cgx)) {
               # can't have a relationship modifier as the first part of the query
               $relationship = $1;
               warn "relationship = $relationship\n" if DEBUG;
               if (!$comops) {                
-                return $self->report_error( $self->message( bad_spec => $relationship, $query ) );
+                return $self->_report_error( $self->message( bad_spec => $relationship, $query ) );
               }
             }
 
-            # get other relationship modifiers, ignore universal queries
+            # get other relationship modifiers
             if ($query =~ / \G (>|\+) \s* /cgx) {
               # can't have a relationship modifier as the first part of the query
               $relationship = $1;
               warn "relationship = $relationship\n" if DEBUG;
               if (!$comops) {
-                return $self->report_error( $self->message( bad_spec => $relationship, $query ) );
+                return $self->_report_error( $self->message( bad_spec => $relationship, $query ) );
               }
             }
 
-            # universal selector, requires leading whitespace or to be first operator, treat as "all tag"
-            if (($leading_whitespace || $comops == 0) && ($query =~ / \G (\*) /cgx)) {
-              push(@args, _tag => qr/\w+/);
+            # optional leading word is a tag name - handle malformed universal/grandchild selector here
+            # make sure not to match standalone universal selector - that comes later!
+            # TODO double check this regex, I don't understand it, it's from Dave
+            if ($query =~ / \G(?!\*(?:\s+|$|\[))([\w*]+) /cgx) {
+                my $tag = $1;
+
+                if ($tag =~ m/\*/) {
+                  return $self->_report_error( $self->message( bad_spec => $tag, $query ) );
+                }
+
+                push( @args, _tag => $tag );
             }
 
-            # optional leading word is a tag name
-            if ($query =~ / \G (\w+) /cgx) {
-                push( @args, _tag => $1 );
+            # universal selector, requires leading whitespace or to be first operator
+            if (($leading_whitespace || $comops == 0) && ($query =~ / \G (\*) /cgx)) {
+              #select all tags from this point down
+              push(@args, _tag => qr/\w+/);
             }
 
             # that can be followed by (or the query can start with) a #id
@@ -363,12 +380,12 @@ sub query {
 
     # check for any trailing text in the query that we couldn't parse
     if ($query =~ / \G (.+?) \s* $ /cgsx) {
-        return $self->report_error( $self->message( bad_spec => $1, $query ) );
+        return $self->_report_error( $self->message( bad_spec => $1, $query ) );
     }
 
     # check that we performed at least one query operation
     unless ($ops) {
-        return $self->report_error( $self->message( bad_query => $query ) );
+        return $self->_report_error( $self->message( bad_query => $query ) );
     }
 
     return wantarray

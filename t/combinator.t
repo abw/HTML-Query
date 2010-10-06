@@ -74,15 +74,15 @@ is( join(', ', $test5->as_trimmed_text), '(div)(/div), (div)(/div)','got var' );
 
 my $test6 = $query->query('div+ div');
 ok( $test6, 'div + div' );
-is( $test6->size, 2, 'div + div' );
+is( $test6->size, 2, 'div+ div' );
 is( join(', ', $test6->as_trimmed_text), '(div)(/div), (div)(/div)','got var' );
 
 my $test7 = $query->query('div +div');
 ok( $test7, 'div + div' );
-is( $test7->size, 2, 'div + div' );
+is( $test7->size, 2, 'div +div' );
 is( join(', ', $test7->as_trimmed_text), '(div)(/div), (div)(/div)','got var' );
 
 my $test8 = $query->query('div+div');
 ok( $test8, 'div + div' );
-is( $test8->size, 2, 'div + div' );
+is( $test8->size, 2, 'div+div' );
 is( join(', ', $test8->as_trimmed_text), '(div)(/div), (div)(/div)','got var' );
