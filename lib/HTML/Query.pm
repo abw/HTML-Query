@@ -8,7 +8,7 @@ use Badger::Class
     base      => 'Badger::Base',
     utils     => 'blessed',
     import    => 'class CLASS',
-    vars      => 'AUTOLOAD',
+    vars      => '$error AUTOLOAD',
     constants => 'ARRAY',
     constant  => {
         ELEMENT => 'HTML::Element',
@@ -51,7 +51,7 @@ our $SOURCES = {
     },
 };
 
-our $error; # how can we store this in the class itself? this is stupid...
+#our $error; # how can we store this in the class itself? this is stupid...
 
 
 sub _export_query_to_element {
@@ -165,6 +165,8 @@ sub query {
     my @result;
     my $ops = 0;
     my $pos = 0;
+
+    $error = undef;
 
     return $self->error_msg('no_query')
         unless defined $query
