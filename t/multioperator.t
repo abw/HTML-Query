@@ -38,7 +38,15 @@ ok( $tree, 'parsed tree for second test file: ' . $multi->name );
 $query = Query $tree;
 ok( $query, 'created query' );
 
-$query->collect_errors(1);
+$query->suppress_errors(1);
+
+
+#-----------------------------------------------------------------------
+# Make sure suppression was stored successfully
+#-----------------------------------------------------------------------
+
+my $test1 = $query->suppress_errors();
+is ($test1, 1, 'errors suppressed');
 
 #-----------------------------------------------------------------------
 # look for some basic elements using duplicate tagnames in query
@@ -85,26 +93,30 @@ is( $test9->size, 8, 'body * div' );
 is( join(', ', $test9->as_trimmed_text), '(div) (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div) (div)(/div)(div)(/div) (/div), (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div), (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div), (div)(/div), (div)(/div)','got var' );
 
 my $test10 = $query->query('body* div');
-isnt( ref $test10, 'HTML::Query', 'No object returned');
-is( $test10, 'Invalid specification "* div" in query: body* div', 'Proper error returned for bad query');
+ok( !defined($test10), 'No object returned');
+is( $query->get_error(), 'Invalid specification "body*" in query: body* div', 'Rejected bad selector' );
 
 my $test11 = $query->query('body *div');
-isnt( ref $test11, 'HTML::Query', 'No object returned');
-is( $test11, 'Invalid specification "*div" in query: body *div', 'Proper error returned for bad query');
+ok( !defined($test11), 'No object returned');
+is( $query->get_error(), 'Invalid specification "*div" in query: body *div', 'Rejected bad selector' );
 
 my $test12 = $query->query('body*');
-isnt( ref $test12, 'HTML::Query', 'No object returned');
-is( $test12, 'Invalid specification "body*" in query: body*', 'Proper error returned for bad query');
+ok( !defined($test12), 'No object returned');
+is( $query->get_error(), 'Invalid specification "body*" in query: body*', 'Rejected bad selector' );
 
 my $test13 = $query->query('*div');
-isnt( ref $test13, 'HTML::Query', 'No object returned');
-is( $test13, 'Invalid specification "*div" in query: *div', 'Proper error returned for bad query');
+ok( !defined($test13), 'No object returned');
+is( $query->get_error(), 'Invalid specification "*div" in query: *div', 'Rejected bad selector' );
 
 my $test14 = $query->query('* div');
 ok( $test14, '* div' );
 is( $test14->size, 9, '* div' );
 is( join(', ', $test14->as_trimmed_text), '(div) (div) (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div) (div)(/div)(div)(/div) (/div) (/div), (div) (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div) (div)(/div)(div)(/div) (/div), (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div), (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div), (div)(/div), (div)(/div)','got var' ); 
 
+#should match the prior test...
 my $test15 = $query->query(' * div');
+ok( $test15, ' * div' );
+is( $test15->size, 9, ' * div' );
+is( join(', ', $test15->as_trimmed_text), '(div) (div) (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div) (div)(/div)(div)(/div) (/div) (/div), (div) (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div) (div)(/div)(div)(/div) (/div), (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div), (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div), (div)(/div), (div)(/div)','got var' ); 
 
 1;
