@@ -203,3 +203,17 @@ is( $found[0]->as_trimmed_text, 'This is another div with bar class', 'got right
 is( $found[1]->as_trimmed_text, 'This is a span with bar class', 'got right 2nd element' );
 is( $found[2]->as_trimmed_text, 'Wobble1', 'got right 3rd element' );
 is( $found[3]->as_trimmed_text, 'test-id content', 'got right 4th element' );
+
+#-----------------------------------------------------------------------
+# check stacked classes
+#-----------------------------------------------------------------------
+
+my @stacked = $query->query('.alert.cool');
+is( scalar(@stacked), 1, 'found all elements with class ".alert.cool"' );
+is( $stacked[0]->as_trimmed_text, '', 'got correct stacked result' );
+
+
+
+my @tagclass = $query->query('span.alert.cool');
+is( scalar(@tagclass), 1, 'found all elements with class ".alert.cool"' );
+is( $tagclass[0]->as_trimmed_text, '', 'got correct stacked result' );
