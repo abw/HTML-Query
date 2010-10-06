@@ -195,13 +195,10 @@ sub query {
             }
 
             #grandchild selector is whitespace sensitive, requires leading whitespace
-            if ($leading_whitespace && ($query =~ / \G (\*) \s+ /cgx)) {
+            if ($leading_whitespace && $comops && ($query =~ / \G (\*) \s+ /cgx)) {
               # can't have a relationship modifier as the first part of the query
               $relationship = $1;
               warn "relationship = $relationship\n" if DEBUG;
-              if (!$comops) {                
-                return $self->_report_error( $self->message( bad_spec => $relationship, $query ) );
-              }
             }
 
             # get other relationship modifiers
