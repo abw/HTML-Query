@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 55,
+    tests => 63,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -208,12 +208,18 @@ is( $found[3]->as_trimmed_text, 'test-id content', 'got right 4th element' );
 # check stacked classes
 #-----------------------------------------------------------------------
 
-my @stacked = $query->query('.alert.cool');
-is( scalar(@stacked), 1, 'found all elements with class ".alert.cool"' );
-is( $stacked[0]->as_trimmed_text, '', 'got correct stacked result' );
+my $stacked = $query->query('.bar.new-class');
+is( $stacked->size, 2, 'found all elements with class ".bar.new-class"' );
+is( join(', ', $stacked->as_trimmed_text), 'This is another div with bar class, This is a span with bar class','got correct stacked result' );
 
+my $switchstacked = $query->query('.new-class.bar');
+is( $switchstacked->size, 2, 'found all elements with class ".new-class.new-bar"' );
+is( join(', ', $switchstacked->as_trimmed_text), 'This is another div with bar class, This is a span with bar class','got correct stacked result' );
 
+my $tagclass = $query->query('span.bar.new-class');
+is( $tagclass->size(), 1, 'found all elements with class "span.bar.new-class"' );
+is( join(', ', $tagclass->as_trimmed_text), 'This is a span with bar class', 'got correct stacked result' );
 
-my @tagclass = $query->query('span.alert.cool');
-is( scalar(@tagclass), 1, 'found all elements with class ".alert.cool"' );
-is( $tagclass[0]->as_trimmed_text, '', 'got correct stacked result' );
+my $switchtagclass = $query->query('span.new-class.bar');
+is( $switchtagclass->size(), 1, 'found all elements with class "span.new-class.bar"' );
+is( join(', ', $switchtagclass->as_trimmed_text), 'This is a span with bar class', 'got correct stacked result' );

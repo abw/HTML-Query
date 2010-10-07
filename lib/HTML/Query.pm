@@ -191,12 +191,14 @@ sub query {
             my $leading_whitespace;
             my $universal = '';
 
+            warn "Starting new SEQUENCE" if DEBUG;
+
             # ignore any leading whitespace
             if ($query =~ / \G (\s+) /cgsx) {
               $leading_whitespace = defined($1) ? 1 : 0;
             }
 
-            #grandchild selector is whitespace sensitive, requires leading whitespace
+            # grandchild selector is whitespace sensitive, requires leading whitespace
             if ($leading_whitespace && $comops && ($query =~ / \G (\*) \s+ /cgx)) {
               # can't have a relationship modifier as the first part of the query
               $relationship = $1;
@@ -213,64 +215,73 @@ sub query {
               }
             }
 
-            # optional leading word is a tag name - handle malformed universal/grandchild selector here
-            # make sure not to match standalone universal selector - that comes later!
-            # TODO double check this regex, I don't understand it, it's from Dave
-            if ($query =~ / \G(?!\*(?:\s+|$|\[))([\w*]+) /cgx) {
-                my $tag = $1;
+                # optional leading word is a tag name - handle malformed universal/grandchild selector here
+                # make sure not to match standalone universal selector - that comes later!
+                # TODO double check this regex, I don't understand it, it's from Dave
+                if ($query =~ / \G(?!\*(?:\s+|$|\[))([\w*]+) /cgx) {
+                    my $tag = $1;
 
-                if ($tag =~ m/\*/) {
-                  return $self->_report_error( $self->message( bad_spec => $tag, $query ) );
+                    if ($tag =~ m/\*/) {
+                        return $self->_report_error( $self->message( bad_spec => $tag, $query ) );
+                    }
+
+                    push( @args, _tag => $tag );
                 }
 
-                push( @args, _tag => $tag );
-            }
+                # universal selector, requires leading whitespace or to be first operator
+                if (($leading_whitespace || $comops == 0) && ($query =~ / \G (\*) /cgx)) {
 
-            # universal selector, requires leading whitespace or to be first operator
-            if (($leading_whitespace || $comops == 0) && ($query =~ / \G (\*) /cgx)) {
-              #select all tags from this point down
-              push(@args, _tag => qr/\w+/);
-            }
-
-            # that can be followed by (or the query can start with) a #id
-            if ($query =~ / \G \# ([\w\-]+) /cgx) {
-                push( @args, id => $1 );
-            }
-
-            # and/or a .class
-            if ($query =~ / \G \. ([\w\-]+) /cgx) {
-                push( @args, class => qr/ (^|\s+) $1 ($|\s+) /x );
-            }
-
-            # and/or none or more [ ] attribute specs
-            while ($query =~ / \G \[ (.*?) \] /cgx) {
-                my $attribute = $1;
-
-                #if we have an operator
-                if ($attribute =~ m/(.*?)\s*([\|\~]?=)\s*(.*)/) {
-                  my ($name,$attribute_op,$value) = ($1,$2,$3);
-                  warn "operator $attribute_op" if DEBUG;
-
-                  if (defined $value) {
-                    for ($value) {
-                        s/^['"]//;
-                        s/['"]$//;
-                    }
-                    if ($attribute_op eq '=') {
-                      push( @args, $name => $value);
-                    }
-                    elsif ($attribute_op eq '|=') {
-                      push(@args, $name => qr/\b${value}-?/)
-                    }
-                    elsif ($attribute_op eq '~=') {
-                      push(@args, $name => qr/\b${value}\b/)
-                    }
-                  }
+                    #select all tags from this point down
+                    push(@args, _tag => qr/\w+/);
                 }
-                else {
-                  # add a regex to match anything (or nothing)
-                  push( @args, $attribute => qr/.*/ );
+
+            # loop to collect a description about this specific part of the rule
+            while (1) {
+                my $work = scalar @args;
+
+                # that can be followed by (or the query can start with) a #id
+                if ($query =~ / \G \# ([\w\-]+) /cgx) {
+                    push( @args, id => $1 );
                 }
+
+                # and/or a .class
+                if ($query =~ / \G \. ([\w\-]+) /cgx) {
+                   push( @args, class => qr/ (^|\s+) $1 ($|\s+) /x );
+                }
+
+                # and/or none or more [ ] attribute specs
+                while ($query =~ / \G \[ (.*?) \] /cgx) {
+                    my $attribute = $1;
+
+                    #if we have an operator
+                    if ($attribute =~ m/(.*?)\s*([\|\~]?=)\s*(.*)/) {
+                        my ($name,$attribute_op,$value) = ($1,$2,$3);
+                        warn "operator $attribute_op" if DEBUG;
+
+                        if (defined $value) {
+                            for ($value) {
+                                s/^['"]//;
+                                s/['"]$//;
+                            }
+                            if ($attribute_op eq '=') {
+                                push( @args, $name => $value);
+                            }
+                            elsif ($attribute_op eq '|=') {
+                                push(@args, $name => qr/\b${value}-?/)
+                            }
+                            elsif ($attribute_op eq '~=') {
+                                push(@args, $name => qr/\b${value}\b/)
+                            }
+                        }
+                    }
+                    else {
+                        # add a regex to match anything (or nothing)
+                        push( @args, $attribute => qr/.*/ );
+                    }
+                }
+
+                # keep going until this particular expression is fully processed
+                last unless scalar(@args) > $work;
             }
 
             # we must have something in @args by now or we didn't find any
@@ -292,6 +303,7 @@ sub query {
               foreach my $e (@elements) {
                 push(@accumulator, grep { $_ != $e } $e->look_down(@args));
               }
+
               @elements = @accumulator;
             }
             # immediate child selector
@@ -353,7 +365,6 @@ sub query {
 
             @elements = @unique;
 
-            warn "numelts=".scalar(@elements)."\n" if DEBUG;
             map { warn $_->as_HTML } @elements if DEBUG;
         }
 
@@ -1050,8 +1061,7 @@ have an undefined value returned then you can use the C<try> method inherited
 from L<Badger::Base|Badger::Base>. This effectively wraps the call to
 C<first()> in an C<eval> block to catch any exceptions thrown.
 
-    my $elem = $query->try('first')
-        || warn "no first element\n";
+    my $elem = $query->try('first') || warn "no first element\n";
 
 =head2 last()
 
