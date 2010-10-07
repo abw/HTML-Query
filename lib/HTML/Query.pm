@@ -169,8 +169,7 @@ sub query {
     $error = undef;
 
     return $self->error_msg('no_query')
-        unless defined $query
-            && length  $query;
+        unless defined $query && length $query;
 
     # multiple specs can be comma separated, e.g. "table tr td, li a, div.foo"
     COMMA: while (1) {
@@ -250,12 +249,17 @@ sub query {
                 }
 
                 # and/or none or more [ ] attribute specs
-                while ($query =~ / \G \[ (.*?) \] /cgx) {
+                if ($query =~ / \G \[ (.*?) \] /cgx) {
                     my $attribute = $1;
 
                     #if we have an operator
                     if ($attribute =~ m/(.*?)\s*([\|\~]?=)\s*(.*)/) {
                         my ($name,$attribute_op,$value) = ($1,$2,$3);
+
+                        unless (defined($name) && length($name)) {
+                             return $self->_report_error( $self->message( bad_spec => $name, $query ) );
+                        }
+
                         warn "operator $attribute_op" if DEBUG;
 
                         if (defined $value) {
@@ -272,9 +276,19 @@ sub query {
                             elsif ($attribute_op eq '~=') {
                                 push(@args, $name => qr/\b${value}\b/)
                             }
+                            else {
+                                return $self->_report_error( $self->message( bad_spec => $attribute_op, $query ) );
+                            }
+                        }
+                        else {
+                            return $self->_report_error( $self->message( bad_spec => $attribute_op, $query ) );
                         }
                     }
                     else {
+                        unless (defined($attribute) && length($attribute)) {
+                          return $self->_report_error( $self->message( bad_spec => $attribute, $query ) );
+                        }
+
                         # add a regex to match anything (or nothing)
                         push( @args, $attribute => qr/.*/ );
                     }
@@ -384,8 +398,7 @@ sub query {
             # so we'll ignore it
         }
 
-        last COMMA
-            unless $query =~ / \G \s*,\s* /cgsx;
+        last COMMA unless $query =~ / \G \s*,\s* /cgsx;
     }
 
     # check for any trailing text in the query that we couldn't parse
