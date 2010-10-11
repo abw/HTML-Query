@@ -1,0 +1,32 @@
+0.01	2008-10-07	Andy Wardley <cpan@wardley.org>>
+
+	* Initial release to the world.
+
+0.02	2009-06-15	Andy Wardley <cpan@wardley.org>>
+
+	* Update code to catch ids/classes
+	* Adjust AUTOLOAD to properly pass arguments
+	* Rework tests to catch cases where id and classes have minus character in them
+
+0.03	2010-09-27	Kevin Kamel <kamelkev@mailermailer.com>
+
+	* Adjustment of Makefile to allow for release from non-author
+	* Added patch from Michael Peters <wonko@cpan.org> to enable combinator support
+	* Added patch contributed from Vivek Khera <vivek@khera.org> to enable fuzzy attribute matching
+	* Updated documentation with contributions from Michael Peters regarding combinators 	
+	* Updated documentation to reflect fuzzy attribute matching
+	* Add tests to verify combinators, fuzzy attributes
+	* Add "acidtest" test from Chelsea Rio to test complex selectors
+
+0.04	2010-10-12	Kevin Kamel <kamelkev@mailermailer.com>
+
+	* Add support for Universal Selector, explicitely differentiating the behaviour from the 
+	  grandchild descendant selector (which is also a "*")
+	* Add code to explicitely dedupe some edge cases
+	* Add code to support flag for error suppression, add method to get error if you need it
+	* Rework selector parser to support complex tag stacking (exa span.class#id.class2#id2[attr])
+	* Add more tests for granchild descendant selector
+	* Add tests for universal selector
+	* Add tests for combinators without spaces (div>em)
+	* Add tests for complex tag stacking
+	
