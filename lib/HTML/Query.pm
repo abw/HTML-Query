@@ -891,6 +891,15 @@ match I<all> of them will be selected.
 KNOWN BUG: you can't have a C<]> character in the attribute value because
 it confuses the query parser.  Fixing this is TODO.
 
+=head2 Universal Selector
+
+W3C CSS 2 specification defines a new construct through which to select
+any element within the document below a given hierarchy.
+
+http://www.w3.org/TR/css3-selectors/#universal-selector
+
+  @elems = $query->query('*');
+
 =head2 Combinator Selectors
 
 W3C CSS 2 specification defines new constructs through which to select
@@ -1120,10 +1129,11 @@ Kevin Kamel <kamelkev@mailermailer.com>
 
 Vivek Khera <vivek@khera.org>
 Michael Peters <wonko@cpan.org>
+David Gray <cpan@doesntsuck.com>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2008 Andy Wardley.  All Rights Reserved.
+Copyright (C) 2010 Andy Wardley.  All Rights Reserved.
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
