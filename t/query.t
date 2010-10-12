@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 55,
+    tests => 57,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -39,6 +39,13 @@ ok( $tree, 'parsed tree for first test file: ' . $test1->name );
 $query = Query $tree;
 ok( $query, 'created query' );
 
+#-----------------------------------------------------------------------
+# look for a specific element type: html
+#-----------------------------------------------------------------------
+
+my $html = $query->query('html');
+ok( $html, 'got <html> query' );
+is( $html->size, 1, 'one html element in query' );
 
 #-----------------------------------------------------------------------
 # look for a specific element type: p
