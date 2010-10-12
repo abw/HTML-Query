@@ -315,7 +315,12 @@ sub query {
               # https://rt.cpan.org/Public/Bug/Display.html?id=58918
               my @accumulator;
               foreach my $e (@elements) {
-                push(@accumulator, grep { $_ != $e } $e->look_down(@args));
+                if ($e->root() == $e) {
+                  push(@accumulator, $e->look_down(@args));
+                }
+                else {
+                  push(@accumulator, grep { $_ != $e } $e->look_down(@args));
+                }
               }
 
               @elements = @accumulator;
