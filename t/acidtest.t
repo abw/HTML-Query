@@ -44,7 +44,7 @@ ok( $query, 'created query' );
 
 my $test0 = $query->query('*');
 ok( $test0, '*' );
-is( $test0->size, 46, '*' ); #includes javascript and metas
+is( $test0->size, 47, '*' ); #includes javascript and metas
 
 my $test1 = $query->query('div#id-one');
 ok( $test1, 'div#id-one' );
