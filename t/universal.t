@@ -1,6 +1,6 @@
 #============================================================= -*-perl-*-
 #
-# t/multioperator.t
+# t/universal.t
 #
 # Test script for the query() method.
 #
@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 41,
+    tests => 44,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -24,7 +24,7 @@ our $Query    = 'HTML::Query';
 our $Builder  = 'HTML::TreeBuilder';
 our $test_dir = Dir($Bin);
 our $html_dir = $test_dir->dir('html')->must_exist;
-our $multi = $html_dir->file('multioperator.html')->must_exist;
+our $multi = $html_dir->file('universal.html')->must_exist;
 
 my ($query, $tree);
 
@@ -40,22 +40,31 @@ ok( $query, 'created query' );
 
 $query->suppress_errors(1);
 
-
 #-----------------------------------------------------------------------
 # Make sure suppression was stored successfully
 #-----------------------------------------------------------------------
 
-my $test1 = $query->suppress_errors();
-is ($test1, 1, 'errors suppressed');
+my $test0 = $query->suppress_errors();
+is ($test0, 1, 'errors suppressed');
 
 #-----------------------------------------------------------------------
-# look for some basic elements using duplicate tagnames in query
+# look for some basic elements using the *
 #-----------------------------------------------------------------------
 
-my $test2 = $query->query('div.danger *');
-ok( $test2, 'div.danger *' );
-is( $test2->size, 4, 'div.danger *' ); #includes javascript and metas
+my $test1 = $query->query('div.danger *');
+ok( $test1, 'div.danger *' );
+is( $test1->size, 4, 'div.danger *' ); #includes javascript and metas
+is( join(', ', $test1->as_trimmed_text), '(div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div)','got var' );
+
+my $test2 = $query->query('* div.danger');
+ok( $test2, '* div.danger' );
+is( $test2->size, 4, '* div.danger' ); #includes javascript and metas
 is( join(', ', $test2->as_trimmed_text), '(div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div)','got var' );
+
+my $test22 = $query->query('div.danger *, * div.danger');
+ok( $test22, '* div.danger' );
+is( $test22->size, 4, '* div.danger' ); #includes javascript and metas
+is( join(', ', $test22->as_trimmed_text), '(div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div)','got var' );
 
 my $test3 = $query->query('div.green');
 ok( $test3, 'div.green' );
@@ -91,6 +100,8 @@ my $test9 = $query->query('body * div');
 ok( $test9, 'body * div' );
 is( $test9->size, 8, 'body * div' );
 is( join(', ', $test9->as_trimmed_text), '(div) (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div) (div)(/div)(div)(/div) (/div), (div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div), (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div), (div)(/div), (div)(/div)','got var' );
+
+#you must use spaces for this operator
 
 my $test10 = $query->query('body* div');
 ok( !defined($test10), 'No object returned');
