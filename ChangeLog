@@ -30,3 +30,9 @@
 	* Add tests for combinators without spaces (div>em)
 	* Add tests for complex tag stacking
 	
+0.05	2010-10-21	Kevin Kamel <kamelkev@mailermailer.com>
+
+	* Added patch from Vivek Khera <vivek@khera.org>
+		- Converts HTML::Query references to hash objects
+		- fixes issues with report error
+		- fixes bug reported on RT whereby iterative queries returned incorrect results
