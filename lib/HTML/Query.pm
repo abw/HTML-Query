@@ -1,6 +1,6 @@
 package HTML::Query;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Badger::Class
     version   => $VERSION,
@@ -181,13 +181,13 @@ sub query {
         my @elements = @{$self->get_elements};
         my $comops   = 0;
 
+        warn "Starting new COMMA" if DEBUG;
+
         # for each whitespace delimited descendant spec we grok the correct
         # parameters for look_down() and apply them to each source element
         # e.g. "table tr td"
         SEQUENCE: while (1) {
             my @args;
-            my %seen;
-            my @unique;
             $pos = pos($query) || 0;
             my $relationship = '';
             my $leading_whitespace;
@@ -198,6 +198,7 @@ sub query {
             # ignore any leading whitespace
             if ($query =~ / \G (\s+) /cgsx) {
               $leading_whitespace = defined($1) ? 1 : 0;
+              warn "removing leading whitespace\n" if DEBUG;
             }
 
             # grandchild selector is whitespace sensitive, requires leading whitespace
@@ -217,25 +218,24 @@ sub query {
               }
             }
 
-                # optional leading word is a tag name - handle malformed universal/grandchild selector here
-                # make sure not to match standalone universal selector - that comes later!
-                # TODO double check this regex, I don't understand it, it's from Dave
-                if ($query =~ / \G(?!\*(?:\s+|$|\[))([\w*]+) /cgx) {
-                    my $tag = $1;
+            # optional leading word is a tag name
+            if ($query =~ / \G ([\w\*]+) /cgx) {
+              my $tag = $1;
 
-                    if ($tag =~ m/\*/) {
-                        return $self->_report_error( $self->message( bad_spec => $tag, $query ) );
-                    }
-
-                    push( @args, _tag => $tag );
+              if ($tag =~ m/\*/) {
+                if (($leading_whitespace || $comops == 0) && ($tag eq '*')) {
+                  warn "universal tag\n" if DEBUG;
+                  push(@args, _tag => qr/\w+/);
                 }
-
-                # universal selector, requires leading whitespace or to be first operator
-                if (($leading_whitespace || $comops == 0) && ($query =~ / \G (\*) /cgx)) {
-
-                    #select all tags from this point down
-                    push(@args, _tag => qr/\w+/);
+                else {
+                  return $self->_report_error( $self->message( bad_spec => $tag, $query ) );
                 }
+              }
+              else {
+                warn "html tag\n" if DEBUG;
+                push( @args, _tag => $tag );
+              }
+            }
 
             # loop to collect a description about this specific part of the rule
             while (1) {
@@ -382,14 +382,8 @@ sub query {
             # so we can check we've done something
             $comops++;
 
-            # we need to remove duplicate elements in the case where elements are nested between multiple matching elements
-            %seen = ();
-            @unique = ();
-            foreach my $item (@elements) {
-              push(@unique, $item) unless $seen{$item}++;
-            }
-
-            @elements = @unique;
+            # dedup the results we've gotten
+            @elements = $self->dedup(\@elements);
 
             map { warn $_->as_HTML } @elements if DEBUG;
         }
@@ -399,7 +393,8 @@ sub query {
                 'Added', scalar(@elements), ' elements to results'
             ) if DEBUG;
 
-            push(@result, @elements);
+            # dedup the results across the result sets
+            @result = $self->dedup(\@elements,\@result);
 
             # update op counter for complete query to include ops performed
             # in this fragment
@@ -423,9 +418,35 @@ sub query {
         return $self->_report_error( $self->message( bad_query => $query ) ); 
     }
 
-    return wantarray
-        ? @result
-        : $self->new_match_self(@result);
+    return wantarray ? @result : $self->new_match_self(@result);
+}
+            
+# remove duplicate elements in the case where elements are nested between multiple matching elements
+sub dedup {
+  my ($self,$elements,$elements2) = @_;
+
+  my %seen = ();
+  my @unique = ();
+
+  my $existing = (defined($elements2) && (scalar @{$elements2} > 0));
+
+  #if we passed elements2 then we want to dedup and merge between sets, frontloading the final return
+  if ($existing) {
+    foreach my $item (@{$elements2}) {
+      $seen{$item}++;
+    }
+    push(@unique,@{$elements2});
+  }
+
+  foreach my $item (@{$elements}) {
+    if (!exists($seen{$item})) {
+      ($existing) ? unshift(@unique, $item) : push(@unique, $item);
+    }
+
+    $seen{$item}++;
+  }
+
+  return @unique;
 }
 
 

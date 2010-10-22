@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 44,
+    tests => 47,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -58,13 +58,13 @@ is( join(', ', $test1->as_trimmed_text), '(div class="green") (div class="yellow
 
 my $test2 = $query->query('* div.danger');
 ok( $test2, '* div.danger' );
-is( $test2->size, 4, '* div.danger' ); #includes javascript and metas
-is( join(', ', $test2->as_trimmed_text), '(div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div)','got var' );
+is( $test2->size, 2, '* div.danger' ); #includes javascript and metas
+is( join(', ', $test2->as_trimmed_text), '(div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div)','got var' );
 
 my $test22 = $query->query('div.danger *, * div.danger');
-ok( $test22, '* div.danger' );
-is( $test22->size, 4, '* div.danger' ); #includes javascript and metas
-is( join(', ', $test22->as_trimmed_text), '(div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div)','got var' );
+ok( $test22, 'div.danger *, * div.danger' );
+is( $test22->size, 5, 'div.danger *, * div.danger' ); #includes javascript and metas
+is( join(', ', $test22->as_trimmed_text), '(div class="danger") (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div) (/div), (div class="green") (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div) (/div), (div class="yellow") (div class="danger") (div class="green")(/div) (/div) (/div), (div class="danger") (div class="green")(/div) (/div), (div class="green")(/div)','got var' );
 
 my $test3 = $query->query('div.green');
 ok( $test3, 'div.green' );
