@@ -36,3 +36,9 @@
 		- Converts HTML::Query references to hash objects
 		- fixes issues with report error
 		- fixes bug reported on RT whereby iterative queries returned incorrect results
+	* Added patch to correct issues found during heavier testing of 0.04
+		- Universal / Grandchild operator now are now better supported
+		- Selectors that involve , are now deduped, previously duplicate results were sneaking in
+		- Results sets are now sorted to match what firefox returns, if for no other reason than to
+		  assist with validation
+		- Universal tests now cover a wider variety of selectors
