@@ -156,7 +156,7 @@ is( join(', ', $tds->as_trimmed_text), 'Wibble1, Wibble2', 'got wibbles' );
 $tds = $query->query('table.one tr.wibble td, table tr.wobble td, a[rel=nuts]');
 ok( $tds, 'got comma sequence query' );
 is( $tds->size, 4, 'four elements in composite query' );
-is( join(', ', $tds->as_trimmed_text), 'Wibble1, Wobble1, Wobble2, Nuts', 'got wibbles, wobbles and nuts' );
+is( join(', ', $tds->as_trimmed_text), 'Nuts, Wibble1, Wobble1, Wobble2', 'got wibbles, wobbles and nuts' );
 
 
 #-----------------------------------------------------------------------

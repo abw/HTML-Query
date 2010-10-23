@@ -83,7 +83,7 @@ is( join(', ', $test7->as_trimmed_text), '(p class="class-one") (span)(/span) te
 my $test8 = $query->query('div#id-one p.class-one, p.class-one span, p.class-two');
 ok( $test8, 'div#id-one p.class-one, p.class-one span, p.class-two' );
 is( $test8->size, 8, 'div#id-one p.class-one, p.class-one span, p.class-two' );
-is( join(', ', $test8->as_trimmed_text), '(p class="class-one") (span)(/span) text (span)(/span) (/p), (span)(/span), (span)(/span), (span)(/span), (span)(/span), (p class="class-two")(/p), (p class="class-two")(/p), (p class="class-two") (em)(/em) text (span)(/span)(a href="#")(/a) (/p)','got var' );
+is( join(', ', $test8->as_trimmed_text), '(p class="class-two")(/p), (p class="class-one") (span)(/span) text (span)(/span) (/p), (span)(/span), (span)(/span), (p class="class-two")(/p), (span)(/span), (span)(/span), (p class="class-two") (em)(/em) text (span)(/span)(a href="#")(/a) (/p)','got var' );
 
 my $test9 = $query->query('div#id-one p.class-two *');
 ok( $test9, 'div#id-one p.class-two *' );
