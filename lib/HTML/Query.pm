@@ -393,8 +393,14 @@ sub query {
                 'Added', scalar(@elements), ' elements to results'
             ) if DEBUG;
 
-            # dedup the results across the result sets
-            @result = $self->dedup(\@elements,\@result);
+            #add in the recent pass
+            push(@result,@elements);
+
+            # dedup the results across the result sets, necessary for comma based selectors
+            @result = $self->dedup(\@result);
+
+            # sort the result set...
+            @result = sort by_address @result;
 
             # update op counter for complete query to include ops performed
             # in this fragment
@@ -420,27 +426,57 @@ sub query {
 
     return wantarray ? @result : $self->new_match_self(@result);
 }
-            
+
+
+sub by_address
+{
+    my @a = split /\./, $a->address();
+    my @b = split /\./, $b->address();
+
+my $max = (scalar @a > scalar @b) ? scalar @a : scalar @b;
+
+    for (my $index=0; $index<$max; $index++) {
+
+# warn $a[$index]. "position $index";
+# warn $b[$index]. "position $index";
+
+
+      if (!defined($a[$index]) && !defined($b[$index])) {
+#warn "neither defined";
+        return 0;
+      }
+      elsif (!defined($a[$index])) {
+# warn "a not defined";
+        return -1;
+      }
+      elsif(!defined($b[$index])) {
+# warn "b not defined";
+        return 1;
+      }
+
+#warn "doing compare!";
+
+      if ($a[$index] == $b[$index]) {
+ #       warn "was equal";
+        next; #move to the next
+      }
+      else {
+  #      warn "here" . $b[$index] <=> $a[$index];
+        return $a[$index] <=> $b[$index];
+      }
+    }
+}
+
 # remove duplicate elements in the case where elements are nested between multiple matching elements
 sub dedup {
-  my ($self,$elements,$elements2) = @_;
+  my ($self,$elements) = @_;
 
   my %seen = ();
   my @unique = ();
 
-  my $existing = (defined($elements2) && (scalar @{$elements2} > 0));
-
-  #if we passed elements2 then we want to dedup and merge between sets, frontloading the final return
-  if ($existing) {
-    foreach my $item (@{$elements2}) {
-      $seen{$item}++;
-    }
-    push(@unique,@{$elements2});
-  }
-
   foreach my $item (@{$elements}) {
     if (!exists($seen{$item})) {
-      ($existing) ? unshift(@unique, $item) : push(@unique, $item);
+      push(@unique, $item);
     }
 
     $seen{$item}++;
