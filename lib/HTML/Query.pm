@@ -1,6 +1,6 @@
 package HTML::Query;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Badger::Class
     version   => $VERSION,
@@ -31,7 +31,6 @@ use Badger::Class
         is_empty    => 'The query does not contain any elements',
     };
 
-
 our $SOURCES = {
     text => sub {
         class(BUILDER)->load;
@@ -51,31 +50,9 @@ our $SOURCES = {
     },
 };
 
-sub _export_query_to_element {
-    class(ELEMENT)->load->method(
-        # this Just Works[tm] because first arg is HTML::Element object
-        query => \&Query,
-    );
-}
-
-sub _report_error {
-    my ($self, $message) = @_;
-
-    if ($self->suppress_errors()) {
-      if (defined($message)) { 
-        $self->{error} = $message;
-      }
-      return undef;
-    }
-    else {
-      $self->error($message);   # this will DIE
-    }
-}
-
 sub Query (@) {
     CLASS->new(@_);
 }
-
 
 sub new {
     my $class = shift;
@@ -141,26 +118,7 @@ sub new {
 
     bless $self, $class;
 
-    return defined $select
-        ? $self->query($select)
-        : $self;
-}
-
-sub suppress_errors {
-    my ($self, $setting) = @_;
-
-    if (defined($setting)) {
-      $self->{suppress_errors} = $setting;
-    }
-
-
-    return $self->{suppress_errors};
-}
-
-sub get_error {
-    my ($self) = @_;
-
-    return $self->{error};
+    return defined $select ? $self->query($select) : $self;
 }
 
 sub query {
@@ -383,7 +341,7 @@ sub query {
             $comops++;
 
             # dedup the results we've gotten
-            @elements = $self->dedup(\@elements);
+            @elements = $self->_dedup(\@elements);
 
             map { warn $_->as_HTML } @elements if DEBUG;
         }
@@ -397,10 +355,10 @@ sub query {
             push(@result,@elements);
 
             # dedup the results across the result sets, necessary for comma based selectors
-            @result = $self->dedup(\@result);
+            @result = $self->_dedup(\@result);
 
             # sort the result set...
-            @result = sort by_address @result;
+            @result = sort _by_address @result;
 
             # update op counter for complete query to include ops performed
             # in this fragment
@@ -424,51 +382,83 @@ sub query {
         return $self->_report_error( $self->message( bad_query => $query ) ); 
     }
 
-    return wantarray ? @result : $self->new_match_self(@result);
+    return wantarray ? @result : $self->_new_match_self(@result);
 }
 
+# return elements stored from last query
+sub get_elements {
+  my $self = shift;
 
-sub by_address
-{
-    my @a = split /\./, $a->address();
-    my @b = split /\./, $b->address();
+  return wantarray ? @{$self->{elements}} : $self->{elements};
+}
 
-my $max = (scalar @a > scalar @b) ? scalar @a : scalar @b;
+sub suppress_errors {
+    my ($self, $setting) = @_;
 
-    for (my $index=0; $index<$max; $index++) {
+    if (defined($setting)) {
+      $self->{suppress_errors} = $setting;
+    }
 
-# warn $a[$index]. "position $index";
-# warn $b[$index]. "position $index";
+    return $self->{suppress_errors};
+}
 
+sub get_error {
+    my ($self) = @_;
 
-      if (!defined($a[$index]) && !defined($b[$index])) {
-#warn "neither defined";
-        return 0;
+    return $self->{error};
+}
+
+sub list {
+    # return list of items or return unblessed list ref of items
+    return wantarray ? @{ $_[0] } : [ @{ $_[0] } ];
+}
+
+sub size {
+  my $self = shift;
+  return scalar @{$self->get_elements};
+}
+
+sub first {
+    my $self = shift;
+
+    return @{$self->get_elements} ? $self->get_elements->[0] : $self->error_msg('is_empty');
+}
+
+sub last {
+    my $self = shift;
+
+    return @{$self->get_elements} ? $self->get_elements->[-1] : $self->error_msg('is_empty');
+}
+
+####################################################################
+#
+# Everything below here is a private method subject to change
+#
+####################################################################
+
+sub _report_error {
+    my ($self, $message) = @_;
+
+    if ($self->suppress_errors()) {
+      if (defined($message)) { 
+        $self->{error} = $message;
       }
-      elsif (!defined($a[$index])) {
-# warn "a not defined";
-        return -1;
-      }
-      elsif(!defined($b[$index])) {
-# warn "b not defined";
-        return 1;
-      }
-
-#warn "doing compare!";
-
-      if ($a[$index] == $b[$index]) {
- #       warn "was equal";
-        next; #move to the next
-      }
-      else {
-  #      warn "here" . $b[$index] <=> $a[$index];
-        return $a[$index] <=> $b[$index];
-      }
+      return undef;
+    }
+    else {
+      $self->error($message);   # this will DIE
     }
 }
 
+sub _export_query_to_element {
+    class(ELEMENT)->load->method(
+        # this Just Works[tm] because first arg is HTML::Element object
+        query => \&Query,
+    );
+}
+
 # remove duplicate elements in the case where elements are nested between multiple matching elements
-sub dedup {
+sub _dedup {
   my ($self,$elements) = @_;
 
   my %seen = ();
@@ -485,10 +475,40 @@ sub dedup {
   return @unique;
 }
 
+# utility method to assist in sorting of query return sets
+sub _by_address
+{
+  my $self = shift;
+
+  my @a = split /\./, $a->address();
+  my @b = split /\./, $b->address();
+
+  my $max = (scalar @a > scalar @b) ? scalar @a : scalar @b;
+
+  for (my $index=0; $index<$max; $index++) {
+
+    if (!defined($a[$index]) && !defined($b[$index])) {
+      return 0;
+    }
+    elsif (!defined($a[$index])) {
+      return -1;
+    }
+    elsif(!defined($b[$index])) {
+      return 1;
+    }
+
+    if ($a[$index] == $b[$index]) {
+      next; #move to the next
+    }
+    else {
+      return $a[$index] <=> $b[$index];
+    }
+  }
+}
 
 # instantiate an instance with match_self turned on, for use with
 # follow-up queries, so they match the top-most elements.
-sub new_match_self {
+sub _new_match_self {
   my $self = shift;
 
   my $result = $self->new(@_);
@@ -496,42 +516,6 @@ sub new_match_self {
   $result->{match_self} = 1;
   return $result;
 }
-
-
-sub list {
-    return wantarray
-        ?   @{ $_[0] }      # return list of items
-        : [ @{ $_[0] } ];   # return unblessed list ref of items
-}
-
-
-sub size {
-  my $self = shift;
-  return scalar @{$self->get_elements};
-}
-
-
-sub first {
-    my $self = shift;
-    return @{$self->get_elements}
-        ? $self->get_elements->[0]
-        : $self->error_msg('is_empty');
-}
-
-
-sub last {
-    my $self = shift;
-    return @{$self->get_elements}
-        ? $self->get_elements->[-1]
-        : $self->error_msg('is_empty');
-}
-
-# return reference to elements array
-sub get_elements {
-  my $self = shift;
-  return $self->{elements};
-}
-
 
 sub AUTOLOAD {
     my $self     = shift;
@@ -544,11 +528,8 @@ sub AUTOLOAD {
         map  { $_->$method(@_) }
         @{$self->get_elements};
 
-    return wantarray
-        ?  @results
-        : \@results;
+    return wantarray ? @results : \@results;
 }
-
 
 1;
 
@@ -628,24 +609,24 @@ Or by monkey-patching a L<query()> method into L<HTML::Element|HTML::Element>.
 
 Once you have a query, you can start selecting elements:
 
-    @r = $q->query('a');            # all <a>...</a> elements
-    @r = $q->query('a#menu');       # all <a> with "menu" id
-    @r = $q->query('#menu');        # all elements with "menu" id
-    @r = $q->query('a.menu');       # all <a> with "menu" class
-    @r = $q->query('.menu');        # all elements with "menu" class
-    @r = $q->query('a[href]');      # all <a> with 'href' attr
-    @r = $q->query('a[href=foo]');  # all <a> with 'href="foo"' attr
+    @r = $q->query('a')->get_elements();            # all <a>...</a> elements
+    @r = $q->query('a#menu')->get_elements();       # all <a> with "menu" id
+    @r = $q->query('#menu')->get_elements();        # all elements with "menu" id
+    @r = $q->query('a.menu')->get_elements();       # all <a> with "menu" class
+    @r = $q->query('.menu')->get_elements();        # all elements with "menu" class
+    @r = $q->query('a[href]')->get_elements();      # all <a> with 'href' attr
+    @r = $q->query('a[href=foo]')->get_elements();  # all <a> with 'href="foo"' attr
 
     # you can specify elements within elements...
-    @r = $q->query('ul.menu li a'); # <ul class="menu">...<li>...<a>
+    @r = $q->query('ul.menu li a')->get_elements(); # <ul class="menu">...<li>...<a>
 
     # and use commas to delimit multiple path specs for different elements
-    @r = $q->query('table tr td a, ul.menu li a, form input[type=submit]');
+    @r = $q->query('table tr td a, form input[type=submit]')->get_elements();
 
     # query() in scalar context returns a new query
-    $r = $q->query('table');        # find all tables
-    $s = $r->query('tr');           # find all rows in all those tables
-    $t = $s->query('td');           # and all cells in those rows...
+    $r = $q->query('table')->get_elements();;       # find all tables
+    $s = $r->query('tr')->get_elements();           # find all rows in all those tables
+    $t = $s->query('td')->get_elements();           # and all cells in those rows...
 
 Inspecting query elements:
 
@@ -761,7 +742,7 @@ case) can be specified to make this so.
     $tree->parse_file($filename);
 
     # now all HTML::Elements have a query() method
-    my @items = $tree->query('ul li');      # find all list items
+    my @items = $tree->query('ul li')->get_elements();  # find all list items
 
 This approach, often referred to as I<monkey-patching>, should be used
 carefully and sparingly. It involves a violation of
@@ -778,35 +759,35 @@ you can now fetch descendant elements in the tree using a simple query syntax.
 For example, to fetch all the C<< E<lt>aE<gt> >> elements in the tree, you can
 write:
 
-    @links = $query->query('a');
+    @links = $query->query('a')->get_elements();
 
 Or, if you want the elements that have a specific C<class> attribute defined
 with a value of, say C<menu>, you can write:
 
-    @links = $query->query('a.menu');
+    @links = $query->query('a.menu')->get_elements();
 
 More generally, you can look for the existence of any attribute and optionally
 provide a specific value for it.
 
-    @links = $query->query('a[href]');               # any href attribute
-    @links = $query->query('a[href=index.html]');    # specific value
+    @links = $query->query('a[href]')->get_elements();            # any href attribute
+    @links = $query->query('a[href=index.html]')->get_elements(); # specific value
 
 You can also find an element (or elements) by specifying an id.
 
-    @links = $query->query('#menu');         # any element with id="menu"
-    @links = $query->query('ul#menu');       # ul element with id="menu"
+    @links = $query->query('#menu')->get_elements();         # any element with id="menu"
+    @links = $query->query('ul#menu')->get_elements();       # ul element with id="menu"
 
 You can provide multiple selection criteria to find elements within elements
 within elements, and so on.  For example, to find all links in a menu,
 you can write:
 
     # matches: <ul class="menu"> <li> <a>
-    @links = $query->query('ul.menu li a');
+    @links = $query->query('ul.menu li a')->get_elements();
 
 You can separate different criteria using commas.  For example, to fetch all
 table rows and C<span> elements with a C<foo> class:
 
-    @elems = $query->('table tr, span.foo');
+    @elems = $query->('table tr, span.foo')->get_elements();
 
 =head2 Query Results
 
@@ -818,9 +799,9 @@ found. You can then call the L<query()> method against that object to further
 refine the query. The L<query()> method applies the selection to all elements
 stored in the query.
 
-    my $tables = $query->query('table');    # find all tables
-    my $rows   = $tables->query('tr');      # find all rows in those tables
-    my $cells  = $rows->query('td');        # find all cells in those rows
+    my $tables = $query->query('table');             # query for tables
+    my $rows   = $tables->query('tr');               # requery for all rows in those tables
+    my $cells  = $rows->query('td')->get_elements(); # return back all the cells in those rows
 
 =head2 Inspection Methods
 
@@ -829,8 +810,7 @@ L<first()> and L<last()> methods return the first and last items in the
 query, respectively.
 
     if ($query->size) {
-        print "from ", $query->first->as_trimmed_text,
-               " to ", $query->last->as_trimmed_text;
+        print "from ", $query->first->as_trimmed_text, " to ", $query->last->as_trimmed_text;
     }
 
 If you want to extract the L<HTML::Element|HTML::Element> objects from the
@@ -867,29 +847,29 @@ provides.
 
 Matches all elements of a particular type.
 
-    @elems = $query->query('table');     # <table>
+    @elems = $query->query('table')->get_elements();     # <table>
 
 =head3 #id
 
 Matches all elements with a specific id attribute.
 
-    @elems = $query->query('#menu');     # <ANY id="menu">
+    @elems = $query->query('#menu')->get_elements()     # <ANY id="menu">
 
 This can be combined with an element type:
 
-    @elems = $query->query('ul#menu');   # <ul id="menu">
+    @elems = $query->query('ul#menu')->get_elements();  # <ul id="menu">
 
 =head3 .class
 
 Matches all elements with a specific class attribute.
 
-    @elems = $query->query('.info');     # <ANY class="info">
+    @elems = $query->query('.info')->get_elements();     # <ANY class="info">
 
 This can be combined with an element type and/or element id:
 
-    @elems = $query->query('p.info');     # <p class="info">
-    @elems = $query->query('p#foo.info'); # <p id="foo" class="info">
-    @elems = $query->query('#foo.info');  # <ANY id="foo" class="info">
+    @elems = $query->query('p.info')->get_elements();     # <p class="info">
+    @elems = $query->query('p#foo.info')->get_elements(); # <p id="foo" class="info">
+    @elems = $query->query('#foo.info')->get_elements();  # <ANY id="foo" class="info">
 
 The selectors listed above can be combined in a whitespace delimited
 sequence to select down through a hierarchy of elements.  Consider the
@@ -907,7 +887,7 @@ following table:
 
 To locate the cells that we're interested in, we can write:
 
-    @elems = $query->query('table.search tr.result td.value');
+    @elems = $query->query('table.search tr.result td.value')->get_elements();
 
 =head2 Attribute Selectors
 
@@ -920,31 +900,31 @@ L<http://www.w3.org/TR/css3-selectors/#attribute-selectors>
 Matches elements that have the specified attribute, including any where
 the attribute has no value.
 
-    @elems = $query->query('[href]');     # <ANY href="...">
+    @elems = $query->query('[href]')->get_elements();        # <ANY href="...">
 
 This can be combined with any of the above selectors.  For example:
 
-    @elems = $query->query('a[href]');      # <a href="...">
-    @elems = $query->query('a.menu[href]'); # <a class="menu" href="...">
+    @elems = $query->query('a[href]')->get_elements();       # <a href="...">
+    @elems = $query->query('a.menu[href]')->get_elements();  # <a class="menu" href="...">
 
 You can specify multiple attribute selectors.  Only those elements that
 match I<all> of them will be selected.
 
-    @elems = $query->query('a[href][rel]'); # <a href="..." rel="...">
+    @elems = $query->query('a[href][rel]')->get_elements();  # <a href="..." rel="...">
 
 =head3 [attr=value]
 
 Matches elements that have an attribute set to a specific value.  The
 value can be quoted in either single or double quotes, or left unquoted.
 
-    @elems = $query->query('[href=index.html]');
-    @elems = $query->query('[href="index.html"]');
-    @elems = $query->query("[href='index.html']");
+    @elems = $query->query('[href=index.html]')->get_elements();
+    @elems = $query->query('[href="index.html"]')->get_elements();
+    @elems = $query->query("[href='index.html']")->get_elements();
 
 You can specify multiple attribute selectors.  Only those elements that
 match I<all> of them will be selected.
 
-    @elems = $query->query('a[href=index.html][rel=home]');
+    @elems = $query->query('a[href=index.html][rel=home]')->get_elements();
 
 =head3 [attr|=value]
 
@@ -952,14 +932,14 @@ Matches any element X whose foo attribute has a hyphen-separated list of
 values beginning (from the left) with bar. The value can be quoted in either
 single or double quotes, or left unquoted.
 
-    @elems = $query->query('[lang|=en]');
-    @elems = $query->query('p[class|="example"]');
-    @elems = $query->query("img[alt|='fig']");
+    @elems = $query->query('[lang|=en]')->get_elements();
+    @elems = $query->query('p[class|="example"]')->get_elements();
+    @elems = $query->query("img[alt|='fig']")->get_elements();
 
 You can specify multiple attribute selectors.  Only those elements that
 match I<all> of them will be selected.
 
-    @elems = $query->query('p[class|="external"][lang|="en"]');
+    @elems = $query->query('p[class|="external"][lang|="en"]')->get_elements();
 
 =head3 [attr~=value]
 
@@ -967,14 +947,14 @@ Matches any element X whose foo attribute value is a list of space-separated
 values, one of which is exactly equal to bar. The value can be quoted in either
 single or double quotes, or left unquoted.
 
-    @elems = $query->query('[lang~=en]');
-    @elems = $query->query('p[class~="example"]');
-    @elems = $query->query("img[alt~='fig']");
+    @elems = $query->query('[lang~=en]')->get_elements();
+    @elems = $query->query('p[class~="example"]')->get_elements();
+    @elems = $query->query("img[alt~='fig']")->get_elements();
 
 You can specify multiple attribute selectors.  Only those elements that
 match I<all> of them will be selected.
 
-    @elems = $query->query('p[class~="external"][lang~="en"]');
+    @elems = $query->query('p[class~="external"][lang~="en"]')->get_elements();
 
 KNOWN BUG: you can't have a C<]> character in the attribute value because
 it confuses the query parser.  Fixing this is TODO.
@@ -986,7 +966,7 @@ any element within the document below a given hierarchy.
 
 http://www.w3.org/TR/css3-selectors/#universal-selector
 
-  @elems = $query->query('*');
+  @elems = $query->query('*')->get_elements();
 
 =head2 Combinator Selectors
 
@@ -1001,21 +981,21 @@ they are descended from the parent in some way. But if you just want
 to select the children (and not the grandchildren, great-grandchildren,
 etc) then you can combine the selectors with the C<< > >> character.
 
- @elems = $query->query('a > img');
+ @elems = $query->query('a > img')->get_elements();
 
 =head3 Non-Immediate Descendents
 
 If you just want any descendents that aren't children then you can combine
 selectors with the C<*> character.
 
- @elems = $query->query('div * a');
+ @elems = $query->query('div * a')->get_elements();
 
 =head3 Immediate Siblings
 
 If you want to use a sibling relationship then you can can join selectors
 with the C<+> character.
 
- @elems = $query->query('img + span');
+ @elems = $query->query('img + span')->get_elements();
 
 =head2 Combining Selectors
 
@@ -1028,7 +1008,7 @@ by separating each part with a comma.  The query will select all matching
 elements for each of the comma-delimited selectors.  For example, to
 find all C<a>, C<b> and C<i> elements in a tree:
 
-    @elems = $query->query('a, b, i');
+    @elems = $query->query('a, b, i')->get_elements();
 
 Each of these selectors can be arbitrarily complex.
 
@@ -1036,7 +1016,7 @@ Each of these selectors can be arbitrarily complex.
         'table.search[width=100%] tr.result[valign=top] td.value,
          form.search input[type=submit],
          a[href=index.html]'
-    );
+    )->get_elements();
 
 =head1 EXPORT HOOKS
 
@@ -1147,14 +1127,25 @@ The list of arguments can also be passed by reference to a list.
 =head2 query($spec)
 
 This method locates the descendant elements identified by the C<$spec>
-argument for each element in the query. In list context it returns a list of
-matching L<HTML::Element|HTML::Element> objects. In scalar context it returns
-a new C<HTML::Query> object containing the element objects.
+argument for each element in the query. It then interally stores the results 
+for requerying or return. See get_elements().
 
-    my @elements  = $query->query($spec);
-    my $new_query = $query->query($spec);
+    my $query = HTML::Query->new(\@args);
+    my $results = $query->query($spec);
 
 See L<"QUERY SYNTAX"> for the permitted syntax of the C<$spec> argument.
+
+=head2 get_elements()
+
+This method returns the stored results from a query. In list context it returns a list of
+matching L<HTML::Element|HTML::Element> objects. In scalar context it returns a reference to
+the results array.
+
+    my $query = HTML::Query->new(\@args);
+    my $results = $query->query($spec);
+
+    my @elements  = $results->query($spec)->get_elements();
+    my $elements  = $results->query($spec)->get_elements();
 
 =head2 size()
 
