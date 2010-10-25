@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 75,
+    tests => 77,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -165,3 +165,6 @@ ok( $test24, 'h1[title][class=last-one][rel=last]' );
 is( $test24->size, 1, 'h1[title][class=last-one][rel=last]' );
 is( join(', ', $test24->as_trimmed_text), '(h1 title="myheading" class="last-one" rel="last")(/h1)','got var' );
 
+my $test25 = $query->query('* html');
+ok( $test25, '* html' );
+is( $test25->size, 0, '* html' );

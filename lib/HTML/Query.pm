@@ -138,6 +138,7 @@ sub query {
         # the source elements in the $self->{elements} query
         my @elements = @{$self->get_elements};
         my $comops   = 0;
+        my $hack_sequence = 0; # look for '* html'
 
         warn "Starting new COMMA" if DEBUG;
 
@@ -149,7 +150,6 @@ sub query {
             $pos = pos($query) || 0;
             my $relationship = '';
             my $leading_whitespace;
-            my $universal = '';
 
             warn "Starting new SEQUENCE" if DEBUG;
 
@@ -184,6 +184,10 @@ sub query {
                 if (($leading_whitespace || $comops == 0) && ($tag eq '*')) {
                   warn "universal tag\n" if DEBUG;
                   push(@args, _tag => qr/\w+/);
+
+                  if ($comops == 0) {  #we need to catch the case where we see '* html'
+                    $hack_sequence++;
+                  }
                 }
                 else {
                   return $self->_report_error( $self->message( bad_spec => $tag, $query ) );
@@ -192,6 +196,10 @@ sub query {
               else {
                 warn "html tag\n" if DEBUG;
                 push( @args, _tag => $tag );
+
+                if ($comops == 1 && $tag eq 'html') {
+                  $hack_sequence++;
+                }
               }
             }
 
@@ -268,8 +276,12 @@ sub query {
                 ' into args [', join(', ', @args), ']'
             ) if DEBUG;
 
+            # we want to skip certain hack sequences like '* html'
+            if ($hack_sequence == 2) {
+              @elements = []; # clear out our stored elements to match behaviour of modern browsers
+            }
             # we're just looking for any descendent
-            if( !$relationship ) {
+            elsif( !$relationship ) {
               if ($self->{match_self}) {
                 # if we are re-querying, be sure to match ourselves not just descendents
                 @elements = map { $_->look_down(@args) } @elements;
