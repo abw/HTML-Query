@@ -11,6 +11,7 @@ t/element.t
 t/iterative.t
 t/multioperand.t
 t/query.t
+t/specificity.t
 t/universal.t
 t/html/acidtest.html
 t/html/combinator.html
