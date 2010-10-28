@@ -42,3 +42,7 @@
 		- Results sets are now sorted to match what firefox returns, if for no other reason than to
 		  assist with validation
 		- Universal tests now cover a wider variety of selectors
+
+0.06	2010-10-27	Kevin Kamel <kamelkev@mailermailer.com>
+
+	* Added skipping for '* html' hack sequence frequently used by IE6, should return nothing
