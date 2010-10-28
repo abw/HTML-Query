@@ -47,10 +47,8 @@ my %rules = (
     "body#internal" => 101
 );
 
-my $query = Query( text  => '' ); 
-
 foreach my $rule (keys %rules) {
-  my $weight = $query->get_specificity($rule);
+  my $weight = Query->get_specificity($rule);
 
   is($weight, $rules{$rule}, "correct weight for \"$rule\"");
 }
