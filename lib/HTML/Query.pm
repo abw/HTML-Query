@@ -185,7 +185,6 @@ sub query {
             # optional leading word is a tag name
             if ($query =~ / \G ([\w\*]+) /cgx) {
               my $tag = $1;
-              $specificity += 1; # standard tags are worth 1 point
 
               if ($tag =~ m/\*/) {
                 if (($leading_whitespace || $comops == 0) && ($tag eq '*')) {
@@ -202,6 +201,7 @@ sub query {
               }
               else {
                 warn "html tag\n" if DEBUG;
+                $specificity += 1; # standard tags are worth 1 point
                 push( @args, _tag => $tag );
 
                 if ($comops == 1 && $tag eq 'html') {
@@ -468,6 +468,10 @@ L<http://www.w3.org/TR/CSS21/cascade.html#specificity>
 
 sub get_specificity {
   my ($self,$selector) = @_;
+
+  unless (exists $self->{specificity}->{$selector}) {
+   $self->query($selector);
+  }
 
   return $self->{specificity}->{$selector};
 }
