@@ -469,7 +469,15 @@ sub get_specificity {
   my ($self,$selector) = @_;
 
   unless (exists $self->{specificity}->{$selector}) {
-   $self->query($selector);
+
+   # if the invoking tree happened to be large this could get expensive real fast
+   # instead load up an empty instance and query that. Makes the average case better,
+   # Makes the best case worse...
+   my $empty = new HTML::Query();
+   $empty->query($selector); 
+   my $weight = $empty->get_specificity($selector);
+
+   $self->{specificity}->{$selector} = $weight;
   }
 
   return $self->{specificity}->{$selector};
