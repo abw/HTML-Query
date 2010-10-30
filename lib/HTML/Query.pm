@@ -470,6 +470,7 @@ sub get_specificity {
   my ($self,$selector) = @_;
 
   unless (exists $self->{specificity}->{$selector}) {
+   local $self->{html_tree} = new HTML::TreeBuilder;
    $self->query($selector);
   }
 
