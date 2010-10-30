@@ -18,7 +18,6 @@ use Badger::Class
         any   => 'Query',
         hooks => {
             query => \&_export_query_to_element,
-            query => \&_export_query_to_element,
         },
     },
     messages  => {
@@ -470,7 +469,6 @@ sub get_specificity {
   my ($self,$selector) = @_;
 
   unless (exists $self->{specificity}->{$selector}) {
-   local $self->{html_tree} = new HTML::TreeBuilder;
    $self->query($selector);
   }
 
