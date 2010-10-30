@@ -14,7 +14,7 @@ use warnings;
 use lib qw( ./lib ../lib );
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 15,
+    tests => 23,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
