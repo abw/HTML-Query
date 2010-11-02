@@ -46,3 +46,10 @@
 0.06	2010-10-27	Kevin Kamel <kamelkev@mailermailer.com>
 
 	* Added skipping for '* html' hack sequence frequently used by IE6, should return nothing
+
+0.07	2010-11-02	Kevin Kamel <kamelkev@mailermailer.com>
+	* Merge in specificity calculation. This code was ripped out of CSS::Inliner, HTML::Query is a more
+	  appropriate place to do this calculation.
+	* Added optimizations so that the specificity calculation doesn't need a tree in order to operate
+	  nor does it need a prior query to have occurred.
+	* Merge in tests from CSS::Inliner for specificity calculations
