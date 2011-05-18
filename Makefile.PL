@@ -1,4 +1,3 @@
-#! /usr/local/bin/perl
 use strict;
 use warnings;
 use 5.006;
@@ -13,7 +12,7 @@ my %opts = (
         'Badger'      => 0.03,
     },
     'dist'         => {
-	PREOP => 'pod2text lib/HTML/Query.pm > README',
+	PREOP => 'pod2text lib/HTML/Query.pm > README; ln -f README $(DISTVNAME)/README',
     },
     'test'         => {
         'TESTS'    => join(' ', map { glob } qw( t/*.t )),
