@@ -11,13 +11,19 @@ my %opts = (
         'HTML::Tree'  => 3.23,
         'Badger'      => 0.03,
     },
-    'dist'         => {
-	PREOP => 'pod2text lib/HTML/Query.pm > README; ln -f README $(DISTVNAME)/README',
-    },
     'test'         => {
         'TESTS'    => join(' ', map { glob } qw( t/*.t )),
     },
 );
+
+sub MY::postamble {
+  return <<'MAKE_FRAG';
+all :: README
+
+README: lib/HTML/Query.pm
+	pod2text $> > README
+MAKE_FRAG
+}
 
 # Handle dev versions in our check
 my $mmv = $ExtUtils::MakeMaker::VERSION;
