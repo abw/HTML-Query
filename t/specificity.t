@@ -14,7 +14,7 @@ use warnings;
 use lib qw( ./lib ../lib );
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 23,
+    tests => 24,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -44,7 +44,8 @@ my %rules = (
     "*" => 0,
     "div#id-one div p>em" => 104,
     "html#simple body#internal" => 202,
-    "body#internal" => 101
+    "body#internal" => 101,
+    "div:first-child" => 11,
 );
 
 foreach my $rule (keys %rules) {
