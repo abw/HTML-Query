@@ -48,8 +48,16 @@
 	* Added skipping for '* html' hack sequence frequently used by IE6, should return nothing
 
 0.07	2010-11-02	Kevin Kamel <kamelkev@mailermailer.com>
+
 	* Merge in specificity calculation. This code was ripped out of CSS::Inliner, HTML::Query is a more
 	  appropriate place to do this calculation.
 	* Added optimizations so that the specificity calculation doesn't need a tree in order to operate
 	  nor does it need a prior query to have occurred.
 	* Merge in tests from CSS::Inliner for specificity calculations
+
+0.08	2012-08-01	Kevin Kamel <kamelkev@mailermailer.com>
+	* Added patch from Sebastian Paaske Torholm <spt@jobindex.dk>
+		- Adds support for -child pseudo-classes including proper specificity calculation
+		- Adds tests for verifying specificity calculation and proper selection of -child pseudo classes
+	* Updated documentation with sections for pseudo-classes and psuedo-elements detailing 
+	  current support for those features.

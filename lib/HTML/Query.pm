@@ -271,6 +271,20 @@ sub query {
                         push( @args, $attribute => qr/.*/ );
                     }
                 }
+                # and/or one or more pseudo-classes
+                if ($query =~ / \G : ([\w\-]+) /cgx) {
+                    my $pseudoclass = $1;
+                    $specificity += 10;
+
+                    if ($pseudoclass eq 'first-child') {
+                        push( @args, sub { ! grep { ref $_ } $_[0]->left() } );
+                    } elsif ($pseudoclass eq 'last-child') {
+                        push( @args, sub { ! grep { ref $_ } $_[0]->right() } );
+                    } else {
+                        warn "Pseudoclass :$pseudoclass not supported";
+                        next;
+                    }
+                }
 
                 # keep going until this particular expression is fully processed
                 last unless scalar(@args) > $work;
@@ -1092,9 +1106,67 @@ with the C<+> character.
 
  @elems = $query->query('img + span')->get_elements();
 
-=head2 Combining Selectors
+=head2 Pseudo-classes
 
-You can combine basic and hierarchical selectors into a single query
+W3C CSS 2 and CSS 3 specifications define new concepts of pseudo-classes to 
+permit formatting based on information that lies outside the document tree. 
+See the following link for the most recent spec:
+L<http://www.w3.org/TR/css3-selectors/#pseudo-classes>
+
+HTML::Query currently has limited support for CSS 2, and no support for CSS 3.
+
+Patches are *highly* encouraged to help add support here.
+
+=head3 -child pseudo-classes
+
+If you want to return child elements within a certain position then -child
+pseudo-classes (:first-child, :last-child) are what you're looking for.
+
+ @elems = $query->query('table td:first-child')->get_elements;
+
+=head3 Link pseudo-classes: :link and :visited
+
+Unsupported.
+
+The :link pseudo-class is to be implemented, currently unsupported.
+
+It is not possible to locate :visited outside of a browser context due to it's
+dynamic nature.
+
+=head3 Dynamic pseudo-classes
+
+Unsupported.
+
+It is not possible to locate these classes(:hover, :active, :focus) outside
+of a browser context due to their dynamic nature.
+
+=head3 Language pseudo-class
+
+Unsupported.
+
+Functionality for the :lang psuedo-class is largely replicated by using an 
+attribute selector for lang combined with a universal selector query.
+
+If this is insufficient I'd love to see a patch adding support for it.
+
+=head3 Other pseudo-classes
+
+W3C CSS 3 added a number of new behaviors that need support. At
+this time there is no support for them, but we should work on adding support.
+
+Patches are very welcome.
+
+=head2 Pseudo-elements
+
+W3C CSS 2 and CSS 3 specification defines new concepts of pseudo-elements to
+permit formatting based on information that lies outside the document tree.
+See the following link for the most recent spec:
+L<http://www.w3.org/TR/css3-selectors/#pseudo-elements>
+
+At this time there is no support for pseudo-elements, but we are working
+on adding support.
+
+Patches are very welcome.
 
 =head2 Combining Selectors
 

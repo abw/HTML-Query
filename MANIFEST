@@ -10,12 +10,14 @@ t/duplicate.t
 t/element.t
 t/iterative.t
 t/multioperand.t
+t/pseudoclasses.t
 t/query.t
 t/specificity.t
 t/universal.t
 t/html/acidtest.html
 t/html/combinator.html
 t/html/multioperator.html
+t/html/pseudoclasses.html
 t/html/test1.html
 t/html/test2.html
 t/html/test3.html
