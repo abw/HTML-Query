@@ -1,6 +1,6 @@
 package HTML::Query;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use Badger::Class
     version   => $VERSION,
