@@ -6,3 +6,4 @@ t/construct.t
 t/element.t
 t/html/test1.html
 t/query.t
+META.yml                                 Module meta-data (added by MakeMaker)
