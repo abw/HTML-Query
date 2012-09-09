@@ -14,7 +14,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 55,
+    tests => 57,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -39,6 +39,13 @@ ok( $tree, 'parsed tree for first test file: ' . $test1->name );
 $query = Query $tree;
 ok( $query, 'created query' );
 
+#-----------------------------------------------------------------------
+# look for a specific element type: html
+#-----------------------------------------------------------------------
+
+my $html = $query->query('html');
+ok( $html, 'got <html> query' );
+is( $html->size, 1, 'one html element in query' );
 
 #-----------------------------------------------------------------------
 # look for a specific element type: p
@@ -149,7 +156,7 @@ is( join(', ', $tds->as_trimmed_text), 'Wibble1, Wibble2', 'got wibbles' );
 $tds = $query->query('table.one tr.wibble td, table tr.wobble td, a[rel=nuts]');
 ok( $tds, 'got comma sequence query' );
 is( $tds->size, 4, 'four elements in composite query' );
-is( join(', ', $tds->as_trimmed_text), 'Wibble1, Wobble1, Wobble2, Nuts', 'got wibbles, wobbles and nuts' );
+is( join(', ', $tds->as_trimmed_text), 'Nuts, Wibble1, Wobble1, Wobble2', 'got wibbles, wobbles and nuts' );
 
 
 #-----------------------------------------------------------------------
