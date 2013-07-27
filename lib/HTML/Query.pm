@@ -1292,7 +1292,7 @@ the results array.
     my @elements  = $results->query($spec)->get_elements();
     my $elements  = $results->query($spec)->get_elements();
 
-=head2 specificity()
+=head2 get_specificity()
 
 Calculate the specificity for any given passed selector, a critical factor in determining how best to apply the cascade
 
