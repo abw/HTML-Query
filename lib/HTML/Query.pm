@@ -456,29 +456,7 @@ sub get_elements {
 # #x34y         {}  /* a=1 b=0 c=0 -> specificity = 100 */
 ###########################################################################################################
 
-=pod
-
-=item specificity()
-
-Calculate the specificity for any given passed selector, a critical factor in determining how best to apply the cascade
-
-A selector's specificity is calculated as follows:
-
-* count the number of ID attributes in the selector (= a)
-* count the number of other attributes and pseudo-classes in the selector (= b)
-* count the number of element names in the selector (= c)
-* ignore pseudo-elements.
-
-The specificity is based only on the form of the selector. In particular, a selector of the form "[id=p33]" is counted
-as an attribute selector (a=0, b=0, c=1, d=0), even if the id attribute is defined as an "ID" in the source document's DTD.
-
-See the following spec for additional details:
-L<http://www.w3.org/TR/CSS21/cascade.html#specificity>
-
-=back
-
-=cut
-
+# calculate and return the specificity for the provided selector
 sub get_specificity {
   my ($self,$selector) = @_;
 
@@ -1313,6 +1291,23 @@ the results array.
 
     my @elements  = $results->query($spec)->get_elements();
     my $elements  = $results->query($spec)->get_elements();
+
+=head2 specificity()
+
+Calculate the specificity for any given passed selector, a critical factor in determining how best to apply the cascade
+
+A selector's specificity is calculated as follows:
+
+* count the number of ID attributes in the selector (= a)
+* count the number of other attributes and pseudo-classes in the selector (= b)
+* count the number of element names in the selector (= c)
+* ignore pseudo-elements.
+
+The specificity is based only on the form of the selector. In particular, a selector of the form "[id=p33]" is counted
+as an attribute selector (a=0, b=0, c=1, d=0), even if the id attribute is defined as an "ID" in the source document's DTD.
+
+See the following spec for additional details:
+L<http://www.w3.org/TR/CSS21/cascade.html#specificity>
 
 =head2 size()
 
