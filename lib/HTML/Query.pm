@@ -1,6 +1,6 @@
 package HTML::Query;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use Badger::Class
     version   => $VERSION,
@@ -272,7 +272,7 @@ sub query {
                     }
                 }
                 # and/or one or more pseudo-classes
-                if ($query =~ / \G : ([\w\-]+) /cgx) {
+                if ($query =~ / \G : :? ([\w\-]+) /cgx) {
                     my $pseudoclass = $1;
                     $specificity += 10;
 
@@ -1122,7 +1122,7 @@ of a browser context due to their dynamic nature.
 
 Unsupported.
 
-Functionality for the :lang psuedo-class is largely replicated by using an 
+Functionality for the :lang pseudo-class is largely replicated by using an 
 attribute selector for lang combined with a universal selector query.
 
 If this is insufficient I'd love to see a patch adding support for it.
