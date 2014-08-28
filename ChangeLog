@@ -61,3 +61,8 @@
 		- Adds tests for verifying specificity calculation and proper selection of -child pseudo classes
 	* Updated documentation with sections for pseudo-classes and psuedo-elements detailing 
 	  current support for those features.
+
+0.09	2014-08-27	Kevin Kamel <kamelkev@mailermailer.com>
+	* Add proper filtering for CSS3 double-colon psuedo-selectors
+		- Update pseudo-class test to exercise updated filtering regex
+	* Correct typo within documentation
