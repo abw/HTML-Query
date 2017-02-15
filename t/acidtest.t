@@ -115,9 +115,9 @@ ok( $test14, 'div#id-one div p>em' );
 is( $test14->size, 2, 'div#id-one div p>em' );
 is( join(', ', $test14->as_trimmed_text), '(em) (span class="sub-class")(/span) (span class="sub-class2")(/span) (span class="under_class2")(/span) (span class="sub-class2 under_class3")(/span) (/em), (em) (span class="sub-class")(/span) (span class="sub-class2")(strong)(/strong)(strong class="class-four")(/strong)(/span) (span class="under_class2")(/span) (/em)','got var' );
 
-my $test15 = $query->query('div#id-one div p>em span[class|=sub]');
-ok( $test15, 'div#id-one div p>em span[class|=sub]' );
-is( $test15->size, 5, 'div#id-one div p>em span[class|=sub]' );
+my $test15 = $query->query("div#id-one div p>em span[class|='sub']");
+ok( $test15, "div#id-one div p>em span[class|='sub']" );
+is( $test15->size, 5, "div#id-one div p>em span[class|='sub']" );
 is( join(', ', $test15->as_trimmed_text), '(span class="sub-class")(/span), (span class="sub-class2")(/span), (span class="sub-class2 under_class3")(/span), (span class="sub-class")(/span), (span class="sub-class2")(strong)(/strong)(strong class="class-four")(/strong)(/span)','got var' );
 
 my $test16 = $query->query('div#id-one div p>em span[class=sub-class2] + span[class=under_class2]');
@@ -125,9 +125,9 @@ ok( $test16, 'div#id-one div p>em span[class=sub-class2] + span[class=under_clas
 is( $test16->size, 2, 'div#id-one div p>em span[class=sub-class2] + span[class=under_class2]' );
 is( join(', ', $test16->as_trimmed_text), '(span class="under_class2")(/span), (span class="under_class2")(/span)','got var' );
 
-my $test17 = $query->query('div#id-one div.class-three p>em span[class|=sub] + span[class=under_class2]');
-ok( $test17, 'div#id-one div.class-three p>em span[class|=sub] + span[class=under_class2]' );
-is( $test17->size, 1, 'div#id-one div.class-three p>em span[class|=sub] + span[class=under_class2]' );
+my $test17 = $query->query('div#id-one div.class-three p>em span[class|=\'sub\'] + span[class="under_class2"]');
+ok( $test17, 'div#id-one div.class-three p>em span[class|=\'sub\'] + span[class="under_class2"]' );
+is( $test17->size, 1, 'div#id-one div.class-three p>em span[class|=\'sub\'] + span[class="under_class2"]' );
 is( join(', ', $test17->as_trimmed_text), '(span class="under_class2")(/span)','got var' );
 
 my $test18 = $query->query('div.class-three + div.class-four');
@@ -150,19 +150,19 @@ ok( $test21, 'span[class~=under_class3]' );
 is( $test21->size, 1, 'span[class~=under_class3]' );
 is( join(', ', $test21->as_trimmed_text), '(span class="sub-class2 under_class3")(/span)','got var' );
 
-my $test22 = $query->query('div#id-one p>em span[class=under_class2] + span[class~=under_class3]');
-ok( $test22, 'div#id-one p>em span[class=under_class2] + span[class~=under_class3]' );
-is( $test22->size, 1, 'div#id-one p>em span[class=under_class2] + span[class~=under_class3]' );
+my $test22 = $query->query('div#id-one p>em span[class=under_class2] + span[class~="under_class3"]');
+ok( $test22, 'div#id-one p>em span[class=under_class2] + span[class~="under_class3"]' );
+is( $test22->size, 1, 'div#id-one p>em span[class=under_class2] + span[class~="under_class3"]' );
 is( join(', ', $test22->as_trimmed_text), '(span class="sub-class2 under_class3")(/span)','got var' );
 
-my $test23 = $query->query('div#id-one div[class=class-three] span[class=sub-class2] strong[class=class-four]');
-ok( $test23, 'div#id-one div[class=class-three] span[class=sub-class2] strong[class=class-four]' );
-is( $test23->size, 1, 'div#id-one div[class=class-three] span[class=sub-class2] strong[class=class-four]' );
+my $test23 = $query->query('div#id-one div[class=class-three] span[class=\'sub-class2\'] strong[class="class-four"]');
+ok( $test23, 'div#id-one div[class=class-three] span[class=\'sub-class2\'] strong[class="class-four"]' );
+is( $test23->size, 1, 'div#id-one div[class=class-three] span[class=\'sub-class2\'] strong[class="class-four"]' );
 is( join(', ', $test23->as_trimmed_text), '(strong class="class-four")(/strong)','got var' );
 
-my $test24 = $query->query('h1[title][class=last-one][rel=last]');
-ok( $test24, 'h1[title][class=last-one][rel=last]' );
-is( $test24->size, 1, 'h1[title][class=last-one][rel=last]' );
+my $test24 = $query->query('h1[title][class="last-one"][rel="last"]');
+ok( $test24, 'h1[title][class="last-one"][rel="last"]' );
+is( $test24->size, 1, 'h1[title][class="last-one"][rel="last"]' );
 is( join(', ', $test24->as_trimmed_text), '(h1 title="myheading" class="last-one" rel="last")(/h1)','got var' );
 
 my $test25 = $query->query('* html');
