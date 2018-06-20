@@ -4,7 +4,7 @@ use lib qw( ./lib ../lib );
 use HTML::TreeBuilder;
 use Badger::Filesystem '$Bin Dir';
 use Badger::Test
-    tests => 2,
+    tests => 4,
     debug => 'HTML::Query',
     args  => \@ARGV;
 
@@ -32,12 +32,35 @@ my ($query, $tree);
 #
 #-----------------------------------------------------------------------
 
-$tree = $Builder->new;
-$tree->parse_file( $table->absolute );
-$query = Query $tree;
+$query = Query->new( file => $table->absolute );
 
 my $tr = $query->query('tr')->first->as_trimmed_text;
 my $tbody = $query->query('tbody')->first->as_trimmed_text;
 
 is( $tr, 'ABC');
 is( $tbody, 'EFG');
+
+#-----------------------------------------------------------------------
+# loading the same html from text
+#-----------------------------------------------------------------------
+
+$query = HTML::Query->new( text => '
+<table>
+    <thead>
+        <th>A</th>
+        <th>B</th>
+        <th>C</th>
+    </thead>
+    <tbody>
+    <tr>
+        <td>E</td>
+        <td>F</td>
+        <td>G</td>
+    </tr>
+    </tbody>
+</table>
+' );
+
+is($query->query('tr')->first->as_trimmed_text, 'ABC');
+is($query->query('tbody')->first->as_trimmed_text, 'EFG');
+
