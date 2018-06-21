@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/gustawdaniel/HTML-Query.svg?branch=master)](https://travis-ci.com/gustawdaniel/HTML-Query)
+
 NAME
     HTML::Query - jQuery-like selection queries for HTML::Element
 

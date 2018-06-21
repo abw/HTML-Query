@@ -2,6 +2,11 @@ package HTML::Query;
 
 our $VERSION = '0.09';
 
+use strict;
+use warnings FATAL => 'all';
+
+use HTML::HTML5::Parser;
+
 use Badger::Class
     version   => $VERSION,
     debug     =>  0,
@@ -12,7 +17,7 @@ use Badger::Class
     constants => 'ARRAY',
     constant  => {
         ELEMENT => 'HTML::Element',
-        BUILDER => 'HTML::TreeBuilder',
+        BUILDER => 'HTML::TreeBuilder'
     },
     exports   => {
         any   => 'Query',
@@ -34,11 +39,17 @@ use Badger::Class
 our $SOURCES = {
     text => sub {
         class(BUILDER)->load;
-        BUILDER->new_from_content(shift);
+        my $str = shift;
+        my $parser = HTML::HTML5::Parser->new;
+        $str = $parser->parse_string($str)->toString;
+        BUILDER->new_from_content($str);
     },
     file => sub {
         class(BUILDER)->load;
-        BUILDER->new_from_file(shift);
+        my $file = shift;
+        my $parser = HTML::HTML5::Parser->new;
+        my $str = $parser->parse_file($file)->toString;
+        BUILDER->new_from_content($str);
     },
     tree => sub {
         $_[0]
