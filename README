@@ -140,6 +140,17 @@ DESCRIPTION
     HTML::Element objects. The root element returned is then wrapped in an
     "HTML::Query" object.
 
+    There also methods that can validate invalidate HTML5 code:
+
+        my $query = Query( text_html5 => $text );
+        my $query = Query( file_html5 => $file );
+
+    These methods works like `text` and `file` but has injected HTML5:Parser
+    that process HTML before HTML::TreeBuilder that cannot do this correctly.
+    You should use `text_html5` and `file_html5` only if you want validate
+    HTML because of overhead associated with additional operations that have
+    influence on efficiency.
+
     If you already have one or more HTML::Element objects that you want to
     query then you can pass them to the Query() subroutine as arguments. For
     example, you can explicitly use HTML::TreeBuilder to parse an HTML

@@ -8,8 +8,9 @@ my %opts = (
     'VERSION_FROM' => 'lib/HTML/Query.pm',
     'PMLIBDIRS'    => [ 'lib' ],
     'PREREQ_PM'    => {
-        'HTML::Tree'  => 3.23,
-        'Badger'      => 0.03,
+        'HTML::Tree'            => 3.23,
+        'HTML::HTML5::Parser'   => 0.301,
+        'Badger'                => 0.03,
     },
     'test'         => {
         'TESTS'    => join(' ', map { glob } qw( t/*.t )),
