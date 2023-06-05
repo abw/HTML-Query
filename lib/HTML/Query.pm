@@ -1058,7 +1058,7 @@ http://www.w3.org/TR/css3-selectors/#universal-selector
 =head2 Combinator Selectors
 
 W3C CSS 2 specification defines new constructs through which to select
-based on heirarchy with the DOM. See the following link for the spec:
+based on hierarchy with the DOM. See the following link for the spec:
 L<http://www.w3.org/TR/css3-selectors/#combinators>
 
 =head3 Immediate Descendents (children)
@@ -1272,7 +1272,7 @@ The list of arguments can also be passed by reference to a list.
 =head2 query($spec)
 
 This method locates the descendant elements identified by the C<$spec>
-argument for each element in the query. It then interally stores the results 
+argument for each element in the query. It then internally stores the results
 for requerying or return. See get_elements().
 
     my $query = HTML::Query->new(\@args);
