@@ -21,7 +21,7 @@ sub MY::postamble {
 all :: README
 
 README: lib/HTML/Query.pm
-	pod2text $> > README
+	pod2text $< > README
 MAKE_FRAG
 }
 
